@@ -14,7 +14,7 @@ object Config {
      * false = Desarrollo local (servidor en localhost/10.0.2.2)
      * true = Producción (servidor en Railway/Render/etc.)
      */
-    const val IS_PRODUCTION = false
+    const val IS_PRODUCTION = true
 
     /**
      * URL del servidor según el entorno
@@ -31,8 +31,8 @@ object Config {
      * Nota: Usa wss:// (WebSocket Secure) en producción con HTTPS
      */
     val SERVER_URL = if (IS_PRODUCTION) {
-        // TODO: Cambiar esta URL cuando despliegues el servidor
-        "wss://bombparty-production.railway.app/game"
+        // Servidor de producción en Railway
+        "wss://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/game"
     } else {
         // URL para desarrollo local (emulador de Android)
         "ws://10.0.2.2:8080/game"
@@ -52,7 +52,7 @@ object Config {
      * URLs útiles para verificar el servidor
      */
     val SERVER_HEALTH_URL = if (IS_PRODUCTION) {
-        "https://bombparty-production.railway.app/health"
+        "https://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/health"
     } else {
         "http://localhost:8080/health"
     }
