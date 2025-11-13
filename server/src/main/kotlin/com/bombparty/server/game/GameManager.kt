@@ -56,9 +56,23 @@ class GameManager {
         rooms[roomId] = room
         playerToRoom[playerId] = roomId
 
+        // Send RoomCreated message with full room details
         sendToPlayer(host, mapOf(
-            "type" to "room_created",
-            "roomId" to roomId,
+            "type" to "RoomCreated",
+            "room" to mapOf(
+                "id" to roomId,
+                "hostId" to playerId,
+                "players" to listOf(
+                    mapOf(
+                        "id" to playerId,
+                        "name" to playerName,
+                        "lives" to 2,
+                        "isAlive" to true
+                    )
+                ),
+                "status" to "WAITING",
+                "maxPlayers" to 8
+            ),
             "playerId" to playerId
         ))
 

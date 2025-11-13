@@ -1,23 +1,29 @@
 package com.bombparty.network.dto
 
 import com.bombparty.domain.model.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class WebSocketMessage {
     @Serializable
+    @SerialName("create_room")
     data class CreateRoom(val config: GameConfig, val playerName: String) : WebSocketMessage()
 
     @Serializable
+    @SerialName("join_room")
     data class JoinRoom(val roomId: String, val playerName: String) : WebSocketMessage()
 
     @Serializable
+    @SerialName("leave_room")
     data class LeaveRoom(val roomId: String, val playerId: String) : WebSocketMessage()
 
     @Serializable
+    @SerialName("start_game")
     data class StartGame(val roomId: String) : WebSocketMessage()
 
     @Serializable
+    @SerialName("submit_word")
     data class SubmitWord(
         val roomId: String,
         val playerId: String,
@@ -25,12 +31,14 @@ sealed class WebSocketMessage {
     ) : WebSocketMessage()
 
     @Serializable
+    @SerialName("bomb_exploded")
     data class BombExploded(
         val roomId: String,
         val playerId: String
     ) : WebSocketMessage()
 
     @Serializable
+    @SerialName("update_config")
     data class UpdateConfig(
         val roomId: String,
         val config: GameConfig

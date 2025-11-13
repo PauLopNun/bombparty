@@ -22,18 +22,18 @@ import javax.inject.Singleton
 class WebSocketClient @Inject constructor() {
     private var session: DefaultClientWebSocketSession? = null
 
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        classDiscriminator = "type"
+    }
+
     private val client = HttpClient(CIO) {
         install(WebSockets) {
-            contentConverter = KotlinxWebsocketSerializationConverter(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
+            contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
+            json(json)
         }
         install(Logging) {
             logger = Logger.DEFAULT
@@ -52,10 +52,12 @@ class WebSocketClient @Inject constructor() {
                     if (frame is Frame.Text) {
                         val text = frame.readText()
                         try {
-                            val message = Json.decodeFromString<ServerMessage>(text)
+                            println("WebSocket: Received: $text")
+                            val message = json.decodeFromString<ServerMessage>(text)
                             emit(message)
                         } catch (e: Exception) {
                             println("Error parsing message: ${e.message}")
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -70,13 +72,15 @@ class WebSocketClient @Inject constructor() {
 
     suspend fun sendMessage(message: WebSocketMessage) {
         try {
-            val jsonString = Json.encodeToString(
+            val jsonString = json.encodeToString(
                 WebSocketMessage.serializer(),
                 message
             )
+            println("WebSocket: Sending: $jsonString")
             session?.send(Frame.Text(jsonString))
         } catch (e: Exception) {
             println("Error sending message: ${e.message}")
+            e.printStackTrace()
             throw e
         }
     }
