@@ -4,16 +4,41 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group
-        android:scaleX="0.3"
-        android:scaleY="0.3"
-        android:translateX="37.8"
-        android:translateY="37.8">
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M54,27C38.6,27 26,39.6 26,55C26,70.4 38.6,83 54,83C69.4,83 82,70.4 82,55C82,39.6 69.4,27 54,27ZM54,77C41.8,77 32,67.2 32,55C32,42.8 41.8,33 54,33C66.2,33 76,42.8 76,55C76,67.2 66.2,77 54,77Z"/>
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M45,50L45,60L63,60L63,50L45,50Z"/>
-    </group>
+
+    <!-- Cuerpo de la bomba (círculo negro) -->
+    <path
+        android:fillColor="#2C2C2C"
+        android:pathData="M54,28 A26,26 0 1,1 54,80 A26,26 0 1,1 54,28 Z"/>
+
+    <!-- Brillo en la bomba -->
+    <path
+        android:fillColor="#4A4A4A"
+        android:pathData="M46,38 A12,8 45 0,1 52,32 A12,8 45 0,1 46,38 Z"/>
+
+    <!-- Base de la mecha -->
+    <path
+        android:fillColor="#3E2723"
+        android:pathData="M52,24 L52,30 L56,30 L56,24 Q54,22 52,24 Z"/>
+
+    <!-- Mecha -->
+    <path
+        android:fillColor="#5D4037"
+        android:strokeColor="#3E2723"
+        android:strokeWidth="0.5"
+        android:pathData="M54,24 Q52,20 53,16 Q54,12 56,14 Q58,16 56,20 L54,24 Z"/>
+
+    <!-- Chispa de la mecha (amarilla) -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M55,14 L54,10 L56,12 L58,9 L56,13 L59,14 L55,14 Z"/>
+
+    <!-- Chispa brillante (naranja) -->
+    <path
+        android:fillColor="#FF6F00"
+        android:pathData="M55,13 L54.5,11 L56,12 L57,10.5 L56,12.5 L57.5,13 L55,13 Z"/>
+
+    <!-- Reflejo adicional en la bomba -->
+    <path
+        android:fillColor="#3A3A3A"
+        android:pathData="M48,42 A8,6 0 1,1 54,40 A8,6 0 1,1 48,42 Z"/>
 </vector>

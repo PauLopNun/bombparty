@@ -42,6 +42,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Generate debug keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Build Release APK
         run: ./gradlew :app:assembleRelease
 
@@ -72,15 +77,17 @@ jobs:
           body: |
             ## 🎮 BombParty Release ${{ steps.version.outputs.version }}
 
+            💣 ¡Nueva versión disponible con icono de bomba!
+
             ### 📱 Instalación
-            1. Descarga el archivo APK
-            2. Habilita "Instalar aplicaciones de fuentes desconocidas" en tu Android
-            3. Abre el APK e instala
+            1. Descarga el archivo APK adjunto
+            2. Habilita "Instalar aplicaciones de fuentes desconocidas" en Configuración → Seguridad
+            3. Abre el APK e instala la aplicación
 
             ### 🌐 Servidor
-            El servidor está alojado en Railway
+            El servidor está alojado en Railway y disponible 24/7
 
             ### ⚠️ Nota
-            Esta es una aplicación sin firmar. Android mostrará una advertencia al instalar.
+            Esta aplicación está firmada con clave de debug para distribución directa.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
