@@ -24,7 +24,16 @@ data class ServerGameRoom(
     var currentSyllable: String? = null,
     var bombTimerJob: Job? = null,
     var bombTimeRemaining: Float = 0f,
-    val usedWords: MutableSet<String> = mutableSetOf()
+    val usedWords: MutableSet<String> = mutableSetOf(),
+    var config: Map<String, Any> = mapOf(
+        "language" to "SPANISH",
+        "syllableDifficulty" to "BEGINNER",
+        "minTurnDuration" to 5,
+        "maxSyllableLifespan" to 2,
+        "initialLives" to 2,
+        "maxLives" to 3,
+        "maxPlayers" to 16
+    )
 )
 
 class GameManager {
@@ -35,21 +44,76 @@ class GameManager {
 
     suspend fun createRoom(
         hostSession: WebSocketSession,
-        playerName: String
+        playerName: String,
+        configJson: kotlinx.serialization.json.JsonObject? = null
     ): String = mutex.withLock {
         val roomId = generateRoomCode()
         val playerId = UUID.randomUUID().toString()
+
+        // Parse config from JSON if provided
+        val config = if (configJson != null) {
+            try {
+                mutableMapOf<String, Any>().apply {
+                    configJson["language"]?.let { put("language", it.toString().replace("\"", "")) }
+                    configJson["syllableDifficulty"]?.let { put("syllableDifficulty", it.toString().replace("\"", "")) }
+                    configJson["minTurnDuration"]?.let {
+                        val value = it.toString().toIntOrNull() ?: 5
+                        put("minTurnDuration", value)
+                    }
+                    configJson["maxSyllableLifespan"]?.let {
+                        val value = it.toString().toIntOrNull() ?: 2
+                        put("maxSyllableLifespan", value)
+                    }
+                    configJson["initialLives"]?.let {
+                        val value = it.toString().toIntOrNull() ?: 2
+                        put("initialLives", value)
+                    }
+                    configJson["maxLives"]?.let {
+                        val value = it.toString().toIntOrNull() ?: 3
+                        put("maxLives", value)
+                    }
+                    configJson["maxPlayers"]?.let {
+                        val value = it.toString().toIntOrNull() ?: 16
+                        put("maxPlayers", value)
+                    }
+                }
+            } catch (e: Exception) {
+                println("Error parsing config: ${e.message}")
+                mapOf(
+                    "language" to "SPANISH",
+                    "syllableDifficulty" to "BEGINNER",
+                    "minTurnDuration" to 5,
+                    "maxSyllableLifespan" to 2,
+                    "initialLives" to 2,
+                    "maxLives" to 3,
+                    "maxPlayers" to 16
+                )
+            }
+        } else {
+            mapOf(
+                "language" to "SPANISH",
+                "syllableDifficulty" to "BEGINNER",
+                "minTurnDuration" to 5,
+                "maxSyllableLifespan" to 2,
+                "initialLives" to 2,
+                "maxLives" to 3,
+                "maxPlayers" to 16
+            )
+        }
+
+        val initialLives = (config["initialLives"] as? Int) ?: 2
 
         val host = ServerPlayer(
             id = playerId,
             name = playerName,
             session = hostSession,
-            lives = 2
+            lives = initialLives
         )
 
         val room = ServerGameRoom(
             id = roomId,
-            hostId = playerId
+            hostId = playerId,
+            config = config
         )
         room.players.add(host)
 
@@ -62,6 +126,7 @@ class GameManager {
             "room" to mapOf(
                 "id" to roomId,
                 "hostId" to playerId,
+                "config" to room.config,
                 "players" to listOf(
                     mapOf(
                         "id" to playerId,
@@ -70,8 +135,7 @@ class GameManager {
                         "isAlive" to true
                     )
                 ),
-                "status" to "WAITING",
-                "maxPlayers" to 8
+                "isStarted" to false
             ),
             "playerId" to playerId
         ))
@@ -305,14 +369,61 @@ class GameManager {
 
     private suspend fun sendToSession(session: WebSocketSession, message: Map<String, Any>) {
         try {
-            val jsonString = json.encodeToString(
-                kotlinx.serialization.serializer(),
-                message
-            )
-            session.send(Frame.Text(jsonString))
+            // Build JSON manually since we're using Map<String, Any>
+            val jsonBuilder = StringBuilder("{")
+            message.entries.forEachIndexed { index, (key, value) ->
+                if (index > 0) jsonBuilder.append(",")
+                jsonBuilder.append("\"$key\":")
+                when (value) {
+                    is String -> jsonBuilder.append("\"$value\"")
+                    is Number -> jsonBuilder.append(value)
+                    is Boolean -> jsonBuilder.append(value)
+                    is Map<*, *> -> jsonBuilder.append(mapToJson(value as Map<String, Any>))
+                    is List<*> -> jsonBuilder.append(listToJson(value))
+                    else -> jsonBuilder.append("null")
+                }
+            }
+            jsonBuilder.append("}")
+            session.send(Frame.Text(jsonBuilder.toString()))
         } catch (e: Exception) {
             println("Error sending message: ${e.message}")
+            e.printStackTrace()
         }
+    }
+
+    private fun mapToJson(map: Map<String, Any>): String {
+        val jsonBuilder = StringBuilder("{")
+        map.entries.forEachIndexed { index, (key, value) ->
+            if (index > 0) jsonBuilder.append(",")
+            jsonBuilder.append("\"$key\":")
+            when (value) {
+                is String -> jsonBuilder.append("\"$value\"")
+                is Number -> jsonBuilder.append(value)
+                is Boolean -> jsonBuilder.append(value)
+                is Map<*, *> -> jsonBuilder.append(mapToJson(value as Map<String, Any>))
+                is List<*> -> jsonBuilder.append(listToJson(value))
+                else -> jsonBuilder.append("null")
+            }
+        }
+        jsonBuilder.append("}")
+        return jsonBuilder.toString()
+    }
+
+    private fun listToJson(list: List<*>): String {
+        val jsonBuilder = StringBuilder("[")
+        list.forEachIndexed { index, value ->
+            if (index > 0) jsonBuilder.append(",")
+            when (value) {
+                is String -> jsonBuilder.append("\"$value\"")
+                is Number -> jsonBuilder.append(value)
+                is Boolean -> jsonBuilder.append(value)
+                is Map<*, *> -> jsonBuilder.append(mapToJson(value as Map<String, Any>))
+                is List<*> -> jsonBuilder.append(listToJson(value))
+                else -> jsonBuilder.append("null")
+            }
+        }
+        jsonBuilder.append("]")
+        return jsonBuilder.toString()
     }
 
     private fun generateRoomCode(): String {

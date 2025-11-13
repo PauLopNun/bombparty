@@ -25,7 +25,8 @@ fun Application.configureRouting(gameManager: GameManager) {
                         when (val type = json["type"]?.jsonPrimitive?.content) {
                             "create_room" -> {
                                 val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
-                                currentRoomId = gameManager.createRoom(this, playerName)
+                                val config = json["config"]?.jsonObject
+                                currentRoomId = gameManager.createRoom(this, playerName, config)
                                 currentPlayerId = currentRoomId // Simplified for this example
                             }
 
