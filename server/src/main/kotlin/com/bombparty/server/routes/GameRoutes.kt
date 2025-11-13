@@ -13,21 +13,26 @@ import kotlinx.serialization.json.jsonPrimitive
 fun Application.configureRouting(gameManager: GameManager) {
     routing {
         webSocket("/game") {
+            println("✅ WebSocket: New connection received")
             var currentPlayerId: String? = null
             var currentRoomId: String? = null
 
             try {
+                println("✅ WebSocket: Connection established successfully")
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         val text = frame.readText()
+                        println("📩 WebSocket: Received message: $text")
                         val json = Json.parseToJsonElement(text).jsonObject
 
                         when (val type = json["type"]?.jsonPrimitive?.content) {
                             "create_room" -> {
+                                println("🏠 Creating room...")
                                 val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
                                 val config = json["config"]?.jsonObject
                                 currentRoomId = gameManager.createRoom(this, playerName, config)
                                 currentPlayerId = currentRoomId // Simplified for this example
+                                println("✅ Room created: $currentRoomId")
                             }
 
                             "join_room" -> {
@@ -56,8 +61,10 @@ fun Application.configureRouting(gameManager: GameManager) {
                     }
                 }
             } catch (e: Exception) {
-                println("WebSocket error: ${e.message}")
+                println("❌ WebSocket error: ${e.message}")
+                e.printStackTrace()
             } finally {
+                println("🔌 WebSocket: Connection closed")
                 gameManager.handleDisconnect(this)
             }
         }

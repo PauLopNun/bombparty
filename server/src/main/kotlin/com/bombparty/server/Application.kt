@@ -18,7 +18,12 @@ fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
     val host = System.getenv("HOST") ?: "0.0.0.0"
 
-    println("Starting server on $host:$port")
+    println("=".repeat(50))
+    println("Starting BombParty Server")
+    println("Host: $host")
+    println("Port: $port")
+    println("WebSocket endpoint: ws://$host:$port/game")
+    println("=".repeat(50))
 
     embeddedServer(Netty, port = port, host = host, module = Application::module)
         .start(wait = true)
@@ -32,6 +37,10 @@ fun Application.module() {
     install(CORS) {
         anyHost()
         allowHeader("Content-Type")
+        allowHeader("Sec-WebSocket-Protocol")
+        allowHeader("Sec-WebSocket-Version")
+        allowHeader("Sec-WebSocket-Key")
+        allowHeader("Sec-WebSocket-Extensions")
     }
 
     install(ContentNegotiation) {
@@ -43,8 +52,8 @@ fun Application.module() {
     }
 
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = Duration.ofSeconds(30)
+        timeout = Duration.ofSeconds(60)
         maxFrameSize = Long.MAX_VALUE
         masking = false
     }
