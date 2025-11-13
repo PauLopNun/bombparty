@@ -26,15 +26,16 @@ jobs:
       - name: Build Release APK
         run: ./gradlew :app:assembleRelease
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        if: ${{ secrets.SIGNING_KEY != '' }}
+      # Sign APK (opcional - requiere configurar secrets)
+      # - name: Sign APK
+      #   uses: r0adkll/sign-android-release@v1
+      #   if: ${{ secrets.SIGNING_KEY != '' }}
+      #   with:
+      #     releaseDirectory: app/build/outputs/apk/release
+      #     signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+      #     alias: ${{ secrets.ALIAS }}
+      #     keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+      #     keyPassword: ${{ secrets.KEY_PASSWORD }}
 
       - name: Rename APK
         run: |
@@ -54,7 +55,7 @@ jobs:
             3. Abre el APK e instala
 
             ### 🌐 Servidor
-            El servidor está alojado en: `wss://bombparty-production.railway.app/game`
+            El servidor está alojado en Railway
 
             ### ⚠️ Nota
             Esta es una aplicación sin firmar. Android mostrará una advertencia al instalar.

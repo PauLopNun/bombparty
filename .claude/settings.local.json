@@ -9,7 +9,10 @@
       "Bash(./gradlew:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git update-index:*)"
+      "Bash(git update-index:*)",
+      "Bash(git tag:*)",
+      "Bash(git push)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
