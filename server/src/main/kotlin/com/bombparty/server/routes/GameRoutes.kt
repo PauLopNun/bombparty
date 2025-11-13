@@ -14,27 +14,44 @@ import kotlinx.serialization.json.jsonPrimitive
 fun Application.configureRouting(gameManager: GameManager) {
     routing {
         webSocket("/game") {
-            println("✅ WebSocket: New connection received")
+            val connectionId = System.currentTimeMillis()
+            println("=" + "=".repeat(60))
+            println("🟢🟢🟢 WEBSOCKET CONNECTION #$connectionId RECEIVED 🟢🟢🟢")
+            println("=" + "=".repeat(60))
+
             var currentPlayerId: String? = null
             var currentRoomId: String? = null
 
             try {
-                println("✅ WebSocket: Connection established successfully")
+                println("📡 WebSocket #$connectionId: Listening for messages...")
+
                 for (frame in incoming) {
+                    println("📦 Frame received on connection #$connectionId: ${frame::class.simpleName}")
+
                     if (frame is Frame.Text) {
                         val text = frame.readText()
-                        println("📩 WebSocket: Received message: $text")
-                        val json = Json.parseToJsonElement(text).jsonObject
+                        println("=" + "=".repeat(60))
+                        println("📨 MESSAGE RECEIVED on #$connectionId:")
+                        println(text)
+                        println("=" + "=".repeat(60))
 
-                        when (val type = json["type"]?.jsonPrimitive?.content) {
-                            "create_room" -> {
-                                println("🏠 Creating room...")
-                                val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
-                                val config = json["config"]?.jsonObject
-                                currentRoomId = gameManager.createRoom(this, playerName, config)
-                                currentPlayerId = currentRoomId // Simplified for this example
-                                println("✅ Room created: $currentRoomId")
-                            }
+                        try {
+                            val json = Json.parseToJsonElement(text).jsonObject
+                            val type = json["type"]?.jsonPrimitive?.content
+                            println("📋 Message type: '$type'")
+
+                            when (type) {
+                                "create_room" -> {
+                                    println("🏠🏠🏠 CREATING ROOM (conn #$connectionId) 🏠🏠🏠")
+                                    val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
+                                    println("👤 Player: $playerName")
+                                    val config = json["config"]?.jsonObject
+                                    println("⚙️ Config: $config")
+
+                                    currentRoomId = gameManager.createRoom(this, playerName, config)
+                                    currentPlayerId = currentRoomId
+                                    println("✅✅✅ ROOM CREATED: $currentRoomId ✅✅✅")
+                                }
 
                             "join_room" -> {
                                 val roomId = json["roomId"]?.jsonPrimitive?.content ?: continue
@@ -55,17 +72,24 @@ fun Application.configureRouting(gameManager: GameManager) {
                                 gameManager.submitWord(roomId, playerId, word)
                             }
 
-                            else -> {
-                                println("Unknown message type: $type")
+                                else -> {
+                                    println("❓ Unknown type: '$type'")
+                                }
                             }
+                        } catch (parseError: Exception) {
+                            println("❌ Parse error: ${parseError.message}")
+                            parseError.printStackTrace()
                         }
+                    } else {
+                        println("⚠️ Non-text frame: ${frame::class.simpleName}")
                     }
                 }
             } catch (e: Exception) {
-                println("❌ WebSocket error: ${e.message}")
+                println("❌❌❌ WebSocket ERROR on #$connectionId:")
+                println("Message: ${e.message}")
                 e.printStackTrace()
             } finally {
-                println("🔌 WebSocket: Connection closed")
+                println("🔌 WebSocket #$connectionId: Connection CLOSED")
                 gameManager.handleDisconnect(this)
             }
         }

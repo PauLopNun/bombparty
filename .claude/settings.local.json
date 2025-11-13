@@ -31,7 +31,8 @@
       "Bash(npm install:*)",
       "Bash(timeout 20 node:*)",
       "Bash(git rm:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(timeout 15 node:*)"
     ],
     "deny": [],
     "ask": []
