@@ -23,7 +23,8 @@
       "Bash(pkill:*)",
       "Bash(update-java-alternatives:*)",
       "Bash(sudo apt-get update:*)",
-      "Bash(sudo apt-get install:*)"
+      "Bash(sudo apt-get install:*)",
+      "Bash(adb logcat:*)"
     ],
     "deny": [],
     "ask": []

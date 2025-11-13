@@ -42,11 +42,14 @@ class WebSocketClient @Inject constructor() {
     }
 
     suspend fun connect(
-        serverUrl: String
+        serverUrl: String,
+        onConnected: () -> Unit = {}
     ): Flow<ServerMessage> = flow {
         try {
             client.webSocket(serverUrl) {
                 session = this
+                println("WebSocket: Connected successfully to $serverUrl")
+                onConnected()
 
                 incoming.receiveAsFlow().collect { frame ->
                     if (frame is Frame.Text) {

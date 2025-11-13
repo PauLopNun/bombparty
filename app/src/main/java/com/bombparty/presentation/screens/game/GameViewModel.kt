@@ -34,6 +34,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import javax.inject.Inject
 
 data class GameUiState(
@@ -60,9 +62,14 @@ class GameViewModel @Inject constructor(
     private var timerJob: Job? = null
 
     fun connectToServer(serverUrl: String) {
-        // Don't reconnect if already connected
+        // Don't reconnect if already connected or connecting
         if (_uiState.value.isConnected) {
             println("GameViewModel: Already connected, skipping reconnect")
+            return
+        }
+
+        if (_uiState.value.isLoading) {
+            println("GameViewModel: Already connecting, skipping duplicate request")
             return
         }
 
@@ -72,14 +79,26 @@ class GameViewModel @Inject constructor(
                 println("GameViewModel: Connecting to $serverUrl")
                 _uiState.update { it.copy(isLoading = true, error = null) }
 
-                webSocketClient.connect(serverUrl).collect { message ->
-                    println("GameViewModel: Received message: ${message::class.simpleName}")
-                    // Mark as connected when we start receiving messages
-                    if (!_uiState.value.isConnected) {
-                        _uiState.update { it.copy(isConnected = true, isLoading = false) }
-                        println("GameViewModel: Connection established")
+                withTimeout(30000) { // 30 second timeout
+                    webSocketClient.connect(
+                        serverUrl = serverUrl,
+                        onConnected = {
+                            println("GameViewModel: Connection established")
+                            _uiState.update { it.copy(isConnected = true, isLoading = false) }
+                        }
+                    ).collect { message ->
+                        println("GameViewModel: Received message: ${message::class.simpleName}")
+                        handleServerMessage(message)
                     }
-                    handleServerMessage(message)
+                }
+            } catch (e: TimeoutCancellationException) {
+                println("GameViewModel: Connection timeout")
+                _uiState.update {
+                    it.copy(
+                        isConnected = false,
+                        error = "Tiempo de conexión agotado. Verifica tu conexión a internet.",
+                        isLoading = false
+                    )
                 }
             } catch (e: Exception) {
                 println("GameViewModel: Connection error: ${e.message}")
