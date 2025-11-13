@@ -6,6 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -71,6 +72,33 @@ fun Application.configureRouting(gameManager: GameManager) {
 
         get("/health") {
             call.respondText("OK")
+        }
+
+        // Test endpoint para verificar que la serialización funciona
+        get("/test-room") {
+            val json = Json {
+                prettyPrint = true
+                classDiscriminator = "type"
+            }
+
+            val configDto = com.bombparty.server.dto.GameConfigDto()
+            val playerDto = com.bombparty.server.dto.PlayerDto(
+                id = "test-123",
+                name = "TestPlayer",
+                lives = 2
+            )
+            val roomDto = com.bombparty.server.dto.GameRoomDto(
+                id = "TEST01",
+                hostId = "test-123",
+                config = configDto,
+                players = listOf(playerDto)
+            )
+            val message = com.bombparty.server.dto.ServerMessage.RoomCreated(roomDto, "test-123")
+
+            call.respondText(
+                json.encodeToString(message),
+                io.ktor.http.ContentType.Application.Json
+            )
         }
     }
 }
