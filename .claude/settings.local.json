@@ -32,7 +32,8 @@
       "Bash(timeout 20 node:*)",
       "Bash(git rm:*)",
       "Bash(git checkout:*)",
-      "Bash(timeout 15 node:*)"
+      "Bash(timeout 15 node:*)",
+      "Bash(\"https://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/game\")"
     ],
     "deny": [],
     "ask": []

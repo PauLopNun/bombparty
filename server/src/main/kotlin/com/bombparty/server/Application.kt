@@ -34,23 +34,20 @@ fun main() {
 }
 
 fun Application.module() {
-    // Interceptor para LOG de TODAS las peticiones
-    intercept(ApplicationCallPipeline.Monitoring) {
-        val uri = call.request.local.uri
-        val method = call.request.local.method.value
-        val headers = call.request.headers
-
-        println("🔵 INCOMING REQUEST:")
-        println("   Method: $method")
-        println("   URI: $uri")
-        println("   Upgrade header: ${headers["Upgrade"]}")
-        println("   Connection header: ${headers["Connection"]}")
-        println("   Sec-WebSocket-Key: ${headers["Sec-WebSocket-Key"]}")
-        println("   All headers: ${headers.entries().joinToString()}")
-    }
-
     install(CallLogging) {
         level = Level.INFO
+        format { call ->
+            val uri = call.request.local.uri
+            val method = call.request.local.method.value
+            val status = call.response.status()
+            val upgrade = call.request.headers["Upgrade"]
+
+            if (upgrade == "websocket") {
+                "🔌 WebSocket: $method $uri"
+            } else {
+                "$status: $method - $uri"
+            }
+        }
     }
 
     install(CORS) {
