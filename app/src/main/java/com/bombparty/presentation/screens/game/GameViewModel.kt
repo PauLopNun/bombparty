@@ -38,6 +38,8 @@ import javax.inject.Inject
 
 data class GameUiState(
     val gameState: GameState? = null,
+    val room: GameRoom? = null,
+    val currentPlayerId: String? = null,
     val currentWord: String = "",
     val isConnected: Boolean = false,
     val error: String? = null,
@@ -150,6 +152,8 @@ class GameViewModel @Inject constructor(
             is ServerMessage.RoomCreated -> {
                 _uiState.update {
                     it.copy(
+                        room = message.room,
+                        currentPlayerId = message.playerId,
                         isConnected = true,
                         isLoading = false,
                         lastMessage = "Room created: ${message.room.id}"
@@ -160,6 +164,8 @@ class GameViewModel @Inject constructor(
             is ServerMessage.RoomJoined -> {
                 _uiState.update {
                     it.copy(
+                        room = message.room,
+                        currentPlayerId = message.playerId,
                         isConnected = true,
                         isLoading = false,
                         lastMessage = "Joined room successfully"
@@ -266,14 +272,22 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.PlayerJoined -> {
-                _uiState.update {
-                    it.copy(lastMessage = "${message.player.name} joined the room")
+                _uiState.update { state ->
+                    val updatedRoom = state.room?.addPlayer(message.player)
+                    state.copy(
+                        room = updatedRoom ?: state.room,
+                        lastMessage = "${message.player.name} joined the room"
+                    )
                 }
             }
 
             is ServerMessage.PlayerLeft -> {
-                _uiState.update {
-                    it.copy(lastMessage = "A player left the room")
+                _uiState.update { state ->
+                    val updatedRoom = state.room?.removePlayer(message.playerId)
+                    state.copy(
+                        room = updatedRoom ?: state.room,
+                        lastMessage = "A player left the room"
+                    )
                 }
             }
 
