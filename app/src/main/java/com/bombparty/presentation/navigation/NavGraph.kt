@@ -32,6 +32,7 @@ import com.bombparty.presentation.screens.game.GameViewModel
 import com.bombparty.presentation.screens.joinroom.JoinRoomScreen
 import com.bombparty.presentation.screens.lobby.LobbyScreen
 import com.bombparty.presentation.screens.menu.MenuScreen
+import com.bombparty.utils.Config
 
 @Composable
 fun NavGraph(
@@ -71,7 +72,7 @@ fun NavGraph(
 
             // Connect to server on first composition
             LaunchedEffect(Unit) {
-                viewModel.connectToServer("wss://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/game")
+                viewModel.connectToServer(Config.SERVER_URL)
             }
 
             CreateRoomScreen(
@@ -103,7 +104,7 @@ fun NavGraph(
 
             // Connect to server on first composition
             LaunchedEffect(Unit) {
-                viewModel.connectToServer("wss://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/game")
+                viewModel.connectToServer(Config.SERVER_URL)
             }
 
             JoinRoomScreen(
