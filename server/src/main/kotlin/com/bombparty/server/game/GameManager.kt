@@ -1,9 +1,11 @@
 package com.bombparty.server.game
 
+import com.bombparty.server.dto.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -40,7 +42,11 @@ class GameManager {
     private val rooms = ConcurrentHashMap<String, ServerGameRoom>()
     private val playerToRoom = ConcurrentHashMap<String, String>()
     private val mutex = Mutex()
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        classDiscriminator = "type"
+    }
 
     suspend fun createRoom(
         hostSession: WebSocketSession,
@@ -120,42 +126,35 @@ class GameManager {
         rooms[roomId] = room
         playerToRoom[playerId] = roomId
 
-        // Send RoomCreated message with full room details
-        // Build complete config matching client's GameConfig structure
-        val completeConfig = mapOf(
-            "language" to (room.config["language"] ?: "SPANISH"),
-            "syllableDifficulty" to (room.config["syllableDifficulty"] ?: "BEGINNER"),
-            "customMinWords" to null,
-            "customMaxWords" to null,
-            "minTurnDuration" to (room.config["minTurnDuration"] ?: 5),
-            "maxSyllableLifespan" to (room.config["maxSyllableLifespan"] ?: 2),
-            "initialLives" to (room.config["initialLives"] ?: 2),
-            "maxLives" to (room.config["maxLives"] ?: 3),
-            "maxPlayers" to (room.config["maxPlayers"] ?: 16),
-            "bonusAlphabet" to ('a'..'z').associate { it.toString() to if (it in listOf('x', 'z')) 0 else 1 }
+        // Send RoomCreated message using DTOs
+        val configDto = GameConfigDto(
+            language = room.config["language"] as? String ?: "SPANISH",
+            syllableDifficulty = room.config["syllableDifficulty"] as? String ?: "BEGINNER",
+            minTurnDuration = room.config["minTurnDuration"] as? Int ?: 5,
+            maxSyllableLifespan = room.config["maxSyllableLifespan"] as? Int ?: 2,
+            initialLives = initialLives,
+            maxLives = room.config["maxLives"] as? Int ?: 3,
+            maxPlayers = room.config["maxPlayers"] as? Int ?: 16
         )
 
-        sendToPlayer(host, mapOf(
-            "type" to "RoomCreated",
-            "room" to mapOf(
-                "id" to roomId,
-                "hostId" to playerId,
-                "config" to completeConfig,
-                "players" to listOf(
-                    mapOf(
-                        "id" to playerId,
-                        "name" to playerName,
-                        "lives" to initialLives,
-                        "isAlive" to true,
-                        "isCurrentTurn" to false,
-                        "usedWords" to emptyList<String>(),
-                        "bonusLettersUsed" to emptyMap<String, Int>()
-                    )
-                ),
-                "isStarted" to false
-            ),
-            "playerId" to playerId
-        ))
+        val playerDto = PlayerDto(
+            id = playerId,
+            name = playerName,
+            lives = initialLives,
+            isAlive = true,
+            isCurrentTurn = false
+        )
+
+        val roomDto = GameRoomDto(
+            id = roomId,
+            hostId = playerId,
+            config = configDto,
+            players = listOf(playerDto),
+            isStarted = false
+        )
+
+        val message = ServerMessage.RoomCreated(roomDto, playerId)
+        sendMessage(host.session, message)
 
         return roomId
     }
@@ -382,6 +381,19 @@ class GameManager {
 
     private suspend fun sendToPlayer(player: ServerPlayer, message: Map<String, Any>) {
         sendToSession(player.session, message)
+    }
+
+    private suspend fun sendMessage(session: WebSocketSession, message: ServerMessage) {
+        try {
+            val jsonString = json.encodeToString(message)
+            println("📤 Sending: ${message::class.simpleName}")
+            println("📤 JSON: $jsonString")
+            session.send(Frame.Text(jsonString))
+            println("✅ Message sent successfully")
+        } catch (e: Exception) {
+            println("❌ Error sending message: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     private suspend fun sendToSession(session: WebSocketSession, message: Map<String, Any>) {
