@@ -1,197 +1,283 @@
-# 💣 BombParty - Android Game
+# 💣 BombParty
 
-Una versión personalizada del juego BombParty de JKLM.FUN, desarrollada en Kotlin con Jetpack Compose para Android.
+Una versión multiplayer del popular juego de palabras BombParty, desarrollada en Kotlin con Jetpack Compose para Android.
+
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple.svg)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5.4-green.svg)](https://developer.android.com/jetpack/compose)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## 📝 Descripción
 
-BombParty es un juego multijugador de palabras donde los jugadores deben escribir palabras que contengan una sílaba específica antes de que explote la bomba. El objetivo es ser el último superviviente.
+BombParty es un juego multijugador de palabras donde los jugadores compiten escribiendo palabras que contengan una sílaba específica antes de que explote la bomba. El último jugador en pie gana la partida.
 
-### Características principales
+### ✨ Características
 
-- 🎮 **Multijugador en línea**: Juega con 2-16 jugadores en tiempo real
-- 🌍 **Soporte multiidioma**: Diccionarios en español e inglés
-- ⚙️ **Personalizable**: Configura dificultad, vidas, duración de turnos y más
-- 🎯 **Sistema de bonus**: Gana vidas usando letras especiales
-- 💫 **UI moderna**: Interfaz construida con Jetpack Compose y Material 3
-- ⏱️ **Timer dinámico**: Bomba con temporizador visual y animaciones
+- 🎮 **Multijugador en tiempo real** - Juega con 2-16 jugadores simultáneamente
+- 🌍 **Multiidioma** - Soporta español e inglés
+- ⚙️ **Altamente configurable** - Personaliza dificultad, vidas, duración y más
+- 🎯 **Sistema de bonus** - Gana vidas usando letras especiales (amarillas)
+- 💫 **UI moderna** - Interfaz fluida con Jetpack Compose y Material 3
+- ⏱️ **Temporizador dinámico** - Bomba con animaciones visuales
+- ☁️ **Servidor en la nube** - Backend desplegado en Railway (24/7)
 
-## 🏗️ Arquitectura
+## 📱 Instalación
 
-El proyecto sigue la arquitectura MVVM (Model-View-ViewModel) con Clean Architecture:
+### Descargar APK
+
+1. Ve a la [página de releases](https://github.com/PauLopNun/bombparty/releases/latest)
+2. Descarga el archivo `BombParty-vX.X.X.apk`
+3. En tu dispositivo Android:
+   - Habilita "Instalar desde fuentes desconocidas" (Configuración → Seguridad)
+   - Abre el archivo APK descargado
+   - Sigue las instrucciones de instalación
+
+### Requisitos
+
+- Android 7.0 (API 24) o superior
+- Conexión a Internet para juego multijugador
+
+## 🎮 Cómo Jugar
+
+### Inicio Rápido
+
+1. **Crear Sala**
+   - Abre la app y selecciona "Crear Sala"
+   - Configura las opciones del juego (opcional)
+   - Comparte el código de sala con tus amigos
+
+2. **Unirse a Sala**
+   - Selecciona "Unirse a Sala"
+   - Ingresa el código de sala que te compartieron
+   - Espera en el lobby hasta que el host inicie el juego
+
+3. **Jugando**
+   - Observa la sílaba que aparece en la bomba
+   - Escribe una palabra que contenga esa sílaba
+   - Presiona Enter o el botón de envío
+   - Si la palabra es válida, la bomba pasa al siguiente jugador
+   - Si no respondes a tiempo, pierdes una vida
+   - El último jugador con vidas gana
+
+### Reglas
+
+- Las palabras deben tener **mínimo 3 letras**
+- La palabra debe **contener la sílaba** mostrada
+- No se pueden **repetir palabras** en la misma partida
+- Las **letras amarillas** (bonus) te dan una vida extra si las usas
+- El temporizador se **acelera** conforme avanza la partida
+
+## ⚙️ Configuración del Juego
+
+### Dificultad
+
+- **Principiante**: Sílabas con 500+ palabras posibles
+- **Intermedio**: Sílabas con 300+ palabras posibles
+- **Avanzado**: Sílabas con 100+ palabras posibles
+- **Personalizado**: Define tu propio rango
+
+### Opciones Personalizables
+
+| Opción | Rango | Predeterminado |
+|--------|-------|----------------|
+| Duración mínima de turno | 3-30s | 5s |
+| Vida máxima de sílaba | 1-10 turnos | 2 |
+| Vidas iniciales | 1-10 | 2 |
+| Vidas máximas | 2-10 | 3 |
+| Jugadores máximos | 2-16 | 16 |
+
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto sigue **Clean Architecture** con patrón **MVVM**:
 
 ```
 app/
 ├── data/
-│   ├── model/           # Modelos de datos
-│   └── repository/      # Repositorios (diccionarios, etc.)
+│   ├── model/              # Modelos de datos
+│   └── repository/         # Acceso a diccionarios
 ├── domain/
-│   └── model/          # Modelos de dominio (Player, GameState, etc.)
+│   └── model/              # Entidades de negocio
 ├── network/
-│   ├── dto/            # Data Transfer Objects
-│   └── WebSocketClient # Cliente WebSocket para comunicación
+│   ├── dto/                # Data Transfer Objects
+│   └── WebSocketClient.kt  # Cliente WebSocket
 ├── presentation/
-│   ├── components/     # Componentes reutilizables de UI
-│   ├── navigation/     # Sistema de navegación
-│   ├── screens/        # Pantallas de la aplicación
-│   └── theme/          # Tema y estilos
-└── di/                 # Inyección de dependencias (Hilt)
+│   ├── components/         # Componentes UI reutilizables
+│   ├── navigation/         # Sistema de navegación
+│   ├── screens/            # Pantallas de la app
+│   ├── theme/              # Tema Material 3
+│   └── viewmodel/          # ViewModels
+├── di/                     # Inyección de dependencias (Hilt)
+└── utils/                  # Utilidades y configuración
+
+server/
+└── src/main/kotlin/        # Servidor Ktor
+    ├── Application.kt      # Punto de entrada
+    ├── GameManager.kt      # Lógica de juego
+    └── models/             # Modelos del servidor
 ```
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Stack Tecnológico
 
-- **Kotlin** - Lenguaje de programación
-- **Jetpack Compose** - UI moderna declarativa
-- **Material 3** - Componentes de diseño
-- **Hilt** - Inyección de dependencias
-- **Ktor Client** - Cliente HTTP y WebSocket
-- **Kotlin Coroutines** - Programación asíncrona
-- **Kotlin Serialization** - Serialización JSON
-- **Navigation Compose** - Navegación entre pantallas
+### Android App
 
-## 📦 Instalación
+- **[Kotlin](https://kotlinlang.org/)** - Lenguaje de programación
+- **[Jetpack Compose](https://developer.android.com/jetpack/compose)** - UI declarativa moderna
+- **[Material 3](https://m3.material.io/)** - Sistema de diseño
+- **[Hilt](https://dagger.dev/hilt/)** - Inyección de dependencias
+- **[Ktor Client](https://ktor.io/docs/client.html)** - Cliente HTTP/WebSocket
+- **[Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)** - Concurrencia
+- **[Kotlin Serialization](https://kotlinlang.org/docs/serialization.html)** - JSON
+- **[Navigation Compose](https://developer.android.com/jetpack/compose/navigation)** - Navegación
 
-### Requisitos previos
+### Backend
 
-- Android Studio Hedgehog (2023.1.1) o superior
-- JDK 17
-- SDK de Android API 24+ (Android 7.0)
+- **[Ktor Server](https://ktor.io/)** - Framework web asíncrono
+- **[WebSockets](https://ktor.io/docs/websocket.html)** - Comunicación en tiempo real
+- **[Railway](https://railway.app/)** - Plataforma de deployment
 
-### Pasos
+## 🌐 Servidor
 
-1. Clona el repositorio:
+El servidor backend está desplegado en **Railway** y corre 24/7.
+
+### Características del Servidor
+
+- Gestión de salas y jugadores
+- Validación de palabras con diccionarios español/inglés
+- Sistema de turnos y temporizador
+- Detección de desconexiones y reconexión automática
+- Logs detallados para debugging
+
+### Configuración
+
+La URL del servidor se configura automáticamente en producción. Para desarrollo local, edita:
+
+`app/src/main/java/com/bombparty/utils/Config.kt`
+
+```kotlin
+const val IS_PRODUCTION = false  // true para producción
+```
+
+## 🚀 Desarrollo
+
+### Requisitos Previos
+
+- **Android Studio** Hedgehog (2023.1.1) o superior
+- **JDK 17**
+- **Android SDK** API 24+
+
+### Setup Local
+
 ```bash
-git clone <tu-repositorio>
-cd bombpartykotlin
+# Clonar el repositorio
+git clone https://github.com/PauLopNun/bombparty.git
+cd bombparty
+
+# Abrir en Android Studio
+# File → Open → Seleccionar carpeta del proyecto
+
+# Sincronizar Gradle
+# Sync Now (cuando Android Studio lo sugiera)
+
+# Ejecutar
+# Run → Run 'app'
 ```
 
-2. Abre el proyecto en Android Studio
+### Ejecutar Servidor Localmente
 
-3. Sincroniza el proyecto con Gradle
-
-4. Ejecuta la aplicación en un emulador o dispositivo físico
-
-## 🎮 Cómo Jugar
-
-1. **Menú Principal**:
-   - Crea una nueva sala o únete a una existente
-   - Configura las opciones del juego (solo el host)
-
-2. **Sala de Espera**:
-   - Espera a que se unan otros jugadores
-   - El host puede iniciar el juego cuando haya al menos 2 jugadores
-
-3. **Juego**:
-   - Aparece una sílaba en la bomba
-   - Escribe una palabra que contenga esa sílaba
-   - Envía la palabra antes de que explote la bomba
-   - Si no envías a tiempo, pierdes una vida
-   - Usa letras bonus (amarillas) para ganar vidas extra
-   - El último jugador con vidas gana
-
-## ⚙️ Configuración del Juego
-
-### Dificultad de sílabas
-- **Principiante**: Al menos 500 palabras por sílaba
-- **Intermedio**: Al menos 300 palabras por sílaba
-- **Avanzado**: Al menos 100 palabras por sílaba
-- **Personalizado**: Define tu propio rango
-
-### Otras opciones
-- **Duración mínima de turno**: 5 segundos (predeterminado)
-- **Vida máxima de sílaba**: 2 turnos (predeterminado)
-- **Vidas iniciales**: 2 (predeterminado)
-- **Vidas máximas**: 3 (predeterminado)
-- **Jugadores máximos**: 2-16
-
-## 🌐 Backend (Servidor)
-
-El juego requiere un servidor backend para la funcionalidad multijugador. Se incluye un servidor básico en Kotlin con Ktor.
-
-### Configurar el servidor
-
-1. Navega al directorio del servidor:
 ```bash
 cd server
-```
-
-2. Ejecuta el servidor:
-```bash
 ./gradlew run
 ```
 
-El servidor escuchará en el puerto 8080 por defecto.
+El servidor iniciará en `http://localhost:8080`
 
-### Configurar la URL del servidor en la app
+### Build APK
 
-En `GameViewModel.kt`, actualiza la URL del servidor:
+```bash
+# Debug APK
+./gradlew assembleDebug
 
-```kotlin
-viewModel.connectToServer("ws://TU_IP:8080/game")
+# Release APK (sin firmar)
+./gradlew assembleRelease
 ```
 
-Para pruebas locales:
-- Emulador: `ws://10.0.2.2:8080/game`
-- Dispositivo físico: `ws://TU_IP_LOCAL:8080/game`
+Los APKs se generan en: `app/build/outputs/apk/`
 
-## 📱 Estructura de Pantallas
+## 📦 Releases
 
-1. **MenuScreen**: Pantalla principal con opciones
-2. **CreateRoomScreen**: Crear nueva sala con configuración
-3. **JoinRoomScreen**: Unirse a sala existente
-4. **LobbyScreen**: Sala de espera antes del juego
-5. **GameScreen**: Pantalla principal del juego
-6. **SettingsScreen**: Configuración de la aplicación
+Las releases se generan automáticamente mediante **GitHub Actions** cuando se crea un nuevo tag:
+
+```bash
+# Crear nuevo tag
+git tag -a v1.0.1 -m "Descripción de la versión"
+
+# Push del tag
+git push origin v1.0.1
+```
+
+GitHub Actions compilará y publicará el APK automáticamente en la página de [Releases](https://github.com/PauLopNun/bombparty/releases).
 
 ## 🎨 Personalización
 
-### Colores
+### Agregar Palabras al Diccionario
 
-Edita `app/src/main/java/com/bombparty/presentation/theme/Color.kt` para personalizar los colores.
+Edita los archivos en `app/src/main/assets/`:
 
-### Diccionarios
-
-Agrega palabras a los diccionarios en `app/src/main/assets/`:
 - `dictionary_es.txt` - Palabras en español
 - `dictionary_en.txt` - Palabras en inglés
 
 Formato: una palabra por línea (mínimo 3 letras)
 
-## 🔧 Próximas Mejoras
+### Modificar Colores
 
-- [ ] Pantallas de crear/unir sala completas
-- [ ] Sistema de autenticación de usuarios
-- [ ] Historial de partidas
-- [ ] Rankings y estadísticas
-- [ ] Sistema de logros
-- [ ] Chat en sala
-- [ ] Sonidos y efectos
-- [ ] Animaciones mejoradas
-- [ ] Modo offline vs AI
-- [ ] Soporte para más idiomas
+Edita `app/src/main/java/com/bombparty/presentation/theme/Color.kt`
+
+### Ajustar Configuración
+
+Edita `app/src/main/java/com/bombparty/utils/Config.kt`
+
+## 🐛 Troubleshooting
+
+### La app no se conecta al servidor
+
+1. Verifica tu conexión a Internet
+2. Comprueba que el servidor esté activo: [Health Check](https://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/health)
+3. Reinstala la app
+
+### Error al instalar APK
+
+- Asegúrate de haber habilitado "Fuentes desconocidas"
+- Si tienes una versión anterior instalada, desinstálala primero
+- Verifica que tu dispositivo tenga espacio suficiente
+
+### El juego se congela
+
+- Cierra y vuelve a abrir la app
+- Verifica tu conexión a Internet
+- Reporta el bug con capturas de pantalla
 
 ## 📄 Licencia
 
-Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 🤝 Contribuciones
+## 🤝 Contribuir
 
-Las contribuciones son bienvenidas. Por favor:
+Las contribuciones son bienvenidas:
 
-1. Haz fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
+1. Fork el proyecto
+2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
 5. Abre un Pull Request
 
-## 👨‍💻 Autor
-
-Desarrollado con ❤️ por [Tu Nombre]
-
-## 🙏 Agradecimientos
+## 🙏 Créditos
 
 - Inspirado en [BombParty de JKLM.FUN](https://jklm.fun/)
-- Basado en el juego de mesa Tic Tac Boum
+- Basado en el juego de mesa "Tic Tac Boum"
 
 ---
 
 **Nota**: Este es un proyecto personal no oficial y no está afiliado con JKLM.FUN o Sparklin Labs.
+
+---
+
+¿Preguntas o sugerencias? [Abre un issue](https://github.com/PauLopNun/bombparty/issues)
