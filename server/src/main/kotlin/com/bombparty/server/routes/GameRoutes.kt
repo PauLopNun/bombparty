@@ -23,6 +23,12 @@ fun Application.configureRouting(gameManager: GameManager) {
             var currentRoomId: String? = null
 
             try {
+                // INMEDIATAMENTE enviar mensaje de bienvenida
+                val welcomeMsg = """{"type":"welcome","message":"Connected to BombParty server","connectionId":$connectionId}"""
+                println("📤 Sending welcome message to connection #$connectionId")
+                send(Frame.Text(welcomeMsg))
+                println("✅ Welcome message sent!")
+
                 println("📡 WebSocket #$connectionId: Listening for messages...")
 
                 for (frame in incoming) {
