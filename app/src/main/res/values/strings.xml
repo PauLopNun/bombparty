@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BombParty</string>
+
+    <!-- Menu Principal -->
+    <string name="create_room">Crear Sala</string>
+    <string name="join_room">Unirse a Sala</string>
+    <string name="settings">Configuración</string>
+
+    <!-- Sala -->
+    <string name="room_code">Código de Sala</string>
+    <string name="enter_room_code">Ingresa el código</string>
+    <string name="player_name">Tu nombre</string>
+    <string name="start_game">Iniciar Juego</string>
+    <string name="waiting_for_players">Esperando jugadores...</string>
+    <string name="players">Jugadores</string>
+
+    <!-- Configuración -->
+    <string name="language">Idioma</string>
+    <string name="spanish">Español</string>
+    <string name="english">English</string>
+    <string name="difficulty">Dificultad</string>
+    <string name="beginner">Principiante</string>
+    <string name="intermediate">Intermedio</string>
+    <string name="advanced">Avanzado</string>
+    <string name="custom">Personalizado</string>
+    <string name="min_turn_duration">Duración mínima de turno</string>
+    <string name="max_syllable_lifespan">Vida máxima de sílaba</string>
+    <string name="initial_lives">Vidas iniciales</string>
+    <string name="max_lives">Vidas máximas</string>
+    <string name="max_players">Jugadores máximos</string>
+
+    <!-- Juego -->
+    <string name="type_word">Escribe una palabra...</string>
+    <string name="lives">Vidas: %1$d</string>
+    <string name="bomb_exploded">¡Bomba Explotó!</string>
+    <string name="word_accepted">Palabra aceptada</string>
+    <string name="word_rejected">Palabra no válida</string>
+    <string name="game_over">Juego Terminado</string>
+    <string name="winner">¡Ganador!</string>
+    <string name="you_lost">Perdiste</string>
+    <string name="play_again">Jugar de nuevo</string>
+    <string name="bonus_letters">Letras bonus</string>
+    <string name="eliminated">Eliminado</string>
+
+    <!-- Errores -->
+    <string name="connection_error">Error de conexión</string>
+    <string name="invalid_room_code">Código de sala inválido</string>
+    <string name="room_full">Sala llena</string>
+    <string name="server_error">Error del servidor</string>
+</resources>

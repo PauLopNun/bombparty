@@ -1,0 +1,62 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # Ejecuta cuando se crea un tag como v1.0.0
+  workflow_dispatch:  # Permite ejecutar manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew :app:assembleRelease
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        if: ${{ secrets.SIGNING_KEY != '' }}
+
+      - name: Rename APK
+        run: |
+          mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/BombParty-${{ github.ref_name }}.apk || true
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/BombParty-${{ github.ref_name }}.apk || true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/release/BombParty-*.apk
+          body: |
+            ## 🎮 BombParty Release ${{ github.ref_name }}
+
+            ### 📱 Instalación
+            1. Descarga el archivo APK
+            2. Habilita "Instalar aplicaciones de fuentes desconocidas" en tu Android
+            3. Abre el APK e instala
+
+            ### 🌐 Servidor
+            El servidor está alojado en: `wss://bombparty-production.railway.app/game`
+
+            ### ⚠️ Nota
+            Esta es una aplicación sin firmar. Android mostrará una advertencia al instalar.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

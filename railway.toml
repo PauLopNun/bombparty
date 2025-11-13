@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "./gradlew :server:shadowJar"
+
+[deploy]
+startCommand = "java -Dserver.port=$PORT -jar server/build/libs/server-all.jar"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

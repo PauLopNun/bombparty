@@ -1,0 +1,30 @@
+package com.bombparty.di
+
+import android.content.Context
+import com.bombparty.data.repository.DictionaryRepository
+import com.bombparty.network.WebSocketClient
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideDictionaryRepository(
+        @ApplicationContext context: Context
+    ): DictionaryRepository {
+        return DictionaryRepository(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWebSocketClient(): WebSocketClient {
+        return WebSocketClient()
+    }
+}
