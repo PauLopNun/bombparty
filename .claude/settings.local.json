@@ -29,7 +29,8 @@
       "Bash(timeout 10 python3:*)",
       "Bash(timeout 10 node:*)",
       "Bash(npm install:*)",
-      "Bash(timeout 20 node:*)"
+      "Bash(timeout 20 node:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

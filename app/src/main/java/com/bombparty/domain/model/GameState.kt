@@ -88,7 +88,11 @@ data class GameState(
     }
 
     fun selectBonusLetters(): GameState {
-        val eligibleLetters = config.bonusAlphabet.filter { it.value > 0 }.keys
+        val eligibleLetters = config.bonusAlphabet
+            .filter { it.value > 0 }
+            .keys
+            .mapNotNull { it.firstOrNull() }
+            .toSet()
         val selectedLetters = eligibleLetters.shuffled().take(3).toSet()
         return copy(currentBonusLetters = selectedLetters)
     }

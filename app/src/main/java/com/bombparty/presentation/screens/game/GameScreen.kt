@@ -309,7 +309,7 @@ fun BonusLettersRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 bonusLetters.forEach { letter ->
-                    val used = currentPlayer?.bonusLettersUsed?.get(letter) ?: 0
+                    val used = currentPlayer?.bonusLettersUsed?.get(letter.toString()) ?: 0
                     Box(
                         modifier = Modifier
                             .size(48.dp)

@@ -10,7 +10,7 @@ data class Player(
     val isAlive: Boolean = true,
     val isCurrentTurn: Boolean = false,
     val usedWords: Set<String> = emptySet(),
-    val bonusLettersUsed: Map<Char, Int> = emptyMap()
+    val bonusLettersUsed: Map<String, Int> = emptyMap()
 ) {
     fun loseLife(): Player = copy(
         lives = (lives - 1).coerceAtLeast(0),
@@ -26,9 +26,10 @@ data class Player(
     )
 
     fun updateBonusLetters(letter: Char): Player {
-        val currentCount = bonusLettersUsed[letter] ?: 0
+        val letterKey = letter.toString()
+        val currentCount = bonusLettersUsed[letterKey] ?: 0
         return copy(
-            bonusLettersUsed = bonusLettersUsed + (letter to currentCount + 1)
+            bonusLettersUsed = bonusLettersUsed + (letterKey to currentCount + 1)
         )
     }
 

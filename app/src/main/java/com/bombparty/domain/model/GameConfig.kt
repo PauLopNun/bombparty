@@ -28,11 +28,12 @@ data class GameConfig(
     val initialLives: Int = 2,
     val maxLives: Int = 3,
     val maxPlayers: Int = 16,
-    val bonusAlphabet: Map<Char, Int> = defaultBonusAlphabet()
+    val bonusAlphabet: Map<String, Int> = defaultBonusAlphabet()
 ) {
     companion object {
-        fun defaultBonusAlphabet(): Map<Char, Int> {
+        fun defaultBonusAlphabet(): Map<String, Int> {
             return ('a'..'z').associateWith { if (it in listOf('x', 'z')) 0 else 1 }
+                .mapKeys { it.key.toString() }
         }
     }
 
