@@ -121,18 +121,35 @@ class GameManager {
         playerToRoom[playerId] = roomId
 
         // Send RoomCreated message with full room details
+        // Build complete config matching client's GameConfig structure
+        val completeConfig = mapOf(
+            "language" to (room.config["language"] ?: "SPANISH"),
+            "syllableDifficulty" to (room.config["syllableDifficulty"] ?: "BEGINNER"),
+            "customMinWords" to null,
+            "customMaxWords" to null,
+            "minTurnDuration" to (room.config["minTurnDuration"] ?: 5),
+            "maxSyllableLifespan" to (room.config["maxSyllableLifespan"] ?: 2),
+            "initialLives" to (room.config["initialLives"] ?: 2),
+            "maxLives" to (room.config["maxLives"] ?: 3),
+            "maxPlayers" to (room.config["maxPlayers"] ?: 16),
+            "bonusAlphabet" to ('a'..'z').associate { it.toString() to if (it in listOf('x', 'z')) 0 else 1 }
+        )
+
         sendToPlayer(host, mapOf(
             "type" to "RoomCreated",
             "room" to mapOf(
                 "id" to roomId,
                 "hostId" to playerId,
-                "config" to room.config,
+                "config" to completeConfig,
                 "players" to listOf(
                     mapOf(
                         "id" to playerId,
                         "name" to playerName,
-                        "lives" to 2,
-                        "isAlive" to true
+                        "lives" to initialLives,
+                        "isAlive" to true,
+                        "isCurrentTurn" to false,
+                        "usedWords" to emptyList<String>(),
+                        "bonusLettersUsed" to emptyMap<String, Int>()
                     )
                 ),
                 "isStarted" to false
