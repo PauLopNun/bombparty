@@ -1,16 +1,12 @@
 plugins {
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
     application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.github.johnrengelman.shadow")
 }
 
 group = "com.bombparty"
 version = "1.0.0"
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     implementation("io.ktor:ktor-server-core:2.3.7")

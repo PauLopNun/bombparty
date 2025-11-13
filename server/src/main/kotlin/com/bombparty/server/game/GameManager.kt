@@ -144,7 +144,7 @@ class GameManager {
 
         broadcastToRoom(room, mapOf(
             "type" to "new_syllable",
-            "syllable" to room.currentSyllable,
+            "syllable" to room.currentSyllable!!,
             "bombTime" to room.bombTimeRemaining,
             "currentPlayerId" to room.players[room.currentPlayerIndex].id
         ))
