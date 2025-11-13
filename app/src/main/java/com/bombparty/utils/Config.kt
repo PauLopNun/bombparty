@@ -31,8 +31,8 @@ object Config {
      * Nota: Usa wss:// (WebSocket Secure) en producción con HTTPS
      */
     val SERVER_URL = if (IS_PRODUCTION) {
-        // Servidor de producción en Railway
-        "wss://97b87797-ba85-4845-a26d-11759c5ea25f.railway.app/game"
+        // Servidor de producción en Render.com (FUNCIONA!)
+        "wss://bombparty-zzgp.onrender.com/game"
     } else {
         // URL para desarrollo local (emulador de Android)
         "ws://10.0.2.2:8080/game"
