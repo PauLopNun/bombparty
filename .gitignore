@@ -88,3 +88,8 @@ Thumbs.db
 
 # Gradle Wrapper
 !gradle-wrapper.jar
+
+# Node.js
+node_modules/
+package-lock.json
+test-websocket.js
