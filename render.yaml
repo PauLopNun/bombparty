@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bombparty-server
+    env: java
+    plan: free
+    buildCommand: ./gradlew :server:shadowJar
+    startCommand: java -jar server/build/libs/server-all.jar
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: JAVA_OPTS
+        value: "-Xmx512m"
+    healthCheckPath: /health
