@@ -61,21 +61,33 @@ class GameViewModel @Inject constructor(
 
     fun connectToServer(serverUrl: String) {
         // Don't reconnect if already connected
-        if (_uiState.value.isConnected) return
+        if (_uiState.value.isConnected) {
+            println("GameViewModel: Already connected, skipping reconnect")
+            return
+        }
 
         connectionJob?.cancel()
         connectionJob = viewModelScope.launch {
             try {
+                println("GameViewModel: Connecting to $serverUrl")
                 _uiState.update { it.copy(isLoading = true, error = null) }
 
                 webSocketClient.connect(serverUrl).collect { message ->
+                    println("GameViewModel: Received message: ${message::class.simpleName}")
+                    // Mark as connected when we start receiving messages
+                    if (!_uiState.value.isConnected) {
+                        _uiState.update { it.copy(isConnected = true, isLoading = false) }
+                        println("GameViewModel: Connection established")
+                    }
                     handleServerMessage(message)
                 }
             } catch (e: Exception) {
+                println("GameViewModel: Connection error: ${e.message}")
+                e.printStackTrace()
                 _uiState.update {
                     it.copy(
                         isConnected = false,
-                        error = "Connection error: ${e.message}",
+                        error = "Error de conexión: ${e.message}",
                         isLoading = false
                     )
                 }
@@ -86,11 +98,21 @@ class GameViewModel @Inject constructor(
     fun createRoom(config: GameConfig, playerName: String) {
         viewModelScope.launch {
             try {
+                println("GameViewModel: Creating room with player name: $playerName")
+                _uiState.update { it.copy(isLoading = true, error = null) }
                 webSocketClient.sendMessage(
                     WebSocketMessage.CreateRoom(config, playerName)
                 )
+                println("GameViewModel: Create room message sent")
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error creating room: ${e.message}") }
+                println("GameViewModel: Error creating room: ${e.message}")
+                e.printStackTrace()
+                _uiState.update {
+                    it.copy(
+                        error = "Error al crear sala: ${e.message}",
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -153,13 +175,14 @@ class GameViewModel @Inject constructor(
     private fun handleServerMessage(message: ServerMessage) {
         when (message) {
             is ServerMessage.RoomCreated -> {
+                println("GameViewModel: Room created with ID: ${message.room.id}")
                 _uiState.update {
                     it.copy(
                         room = message.room,
                         currentPlayerId = message.playerId,
                         isConnected = true,
                         isLoading = false,
-                        lastMessage = "Room created: ${message.room.id}"
+                        lastMessage = "Sala creada: ${message.room.id}"
                     )
                 }
             }

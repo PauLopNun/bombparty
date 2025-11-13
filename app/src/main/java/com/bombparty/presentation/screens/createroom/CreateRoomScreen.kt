@@ -21,7 +21,10 @@ import com.bombparty.domain.model.SyllableDifficulty
 @Composable
 fun CreateRoomScreen(
     onNavigateBack: () -> Unit,
-    onRoomCreated: (roomId: String, playerName: String, config: GameConfig) -> Unit
+    onRoomCreated: (roomId: String, playerName: String, config: GameConfig) -> Unit,
+    isLoading: Boolean = false,
+    isConnected: Boolean = false,
+    error: String? = null
 ) {
     var playerName by remember { mutableStateOf("") }
     var language by remember { mutableStateOf(GameLanguage.SPANISH) }
@@ -29,7 +32,6 @@ fun CreateRoomScreen(
     var initialLives by remember { mutableStateOf(2) }
     var turnDuration by remember { mutableStateOf(8) }
     var maxPlayers by remember { mutableStateOf(8) }
-    var isCreating by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -64,6 +66,40 @@ fun CreateRoomScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Connection status
+            if (!isConnected && !isLoading) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "⚠️ Conectando al servidor...",
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Error message
+            error?.let { errorMsg ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "❌ $errorMsg",
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Player Name
             OutlinedTextField(
                 value = playerName,
@@ -71,7 +107,7 @@ fun CreateRoomScreen(
                 label = { Text("Tu nombre") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                enabled = !isCreating
+                enabled = !isLoading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -103,7 +139,7 @@ fun CreateRoomScreen(
                             )
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = !isCreating
+                        enabled = !isLoading
                     )
                 }
             }
@@ -138,7 +174,7 @@ fun CreateRoomScreen(
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isCreating
+                        enabled = !isLoading
                     )
                 }
             }
@@ -164,13 +200,13 @@ fun CreateRoomScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(
                         onClick = { if (initialLives > 1) initialLives-- },
-                        enabled = !isCreating && initialLives > 1
+                        enabled = !isLoading && initialLives > 1
                     ) {
                         Text("-")
                     }
                     FilledTonalButton(
                         onClick = { if (initialLives < 5) initialLives++ },
-                        enabled = !isCreating && initialLives < 5
+                        enabled = !isLoading && initialLives < 5
                     ) {
                         Text("+")
                     }
@@ -189,13 +225,13 @@ fun CreateRoomScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(
                         onClick = { if (turnDuration > 5) turnDuration-- },
-                        enabled = !isCreating && turnDuration > 5
+                        enabled = !isLoading && turnDuration > 5
                     ) {
                         Text("-")
                     }
                     FilledTonalButton(
                         onClick = { if (turnDuration < 15) turnDuration++ },
-                        enabled = !isCreating && turnDuration < 15
+                        enabled = !isLoading && turnDuration < 15
                     ) {
                         Text("+")
                     }
@@ -214,13 +250,13 @@ fun CreateRoomScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(
                         onClick = { if (maxPlayers > 2) maxPlayers-- },
-                        enabled = !isCreating && maxPlayers > 2
+                        enabled = !isLoading && maxPlayers > 2
                     ) {
                         Text("-")
                     }
                     FilledTonalButton(
                         onClick = { if (maxPlayers < 16) maxPlayers++ },
-                        enabled = !isCreating && maxPlayers < 16
+                        enabled = !isLoading && maxPlayers < 16
                     ) {
                         Text("+")
                     }
@@ -232,8 +268,7 @@ fun CreateRoomScreen(
             // Create Room Button
             Button(
                 onClick = {
-                    if (playerName.isNotBlank()) {
-                        isCreating = true
+                    if (playerName.isNotBlank() && isConnected) {
                         val config = GameConfig(
                             language = language,
                             syllableDifficulty = difficulty,
@@ -241,23 +276,22 @@ fun CreateRoomScreen(
                             minTurnDuration = turnDuration,
                             maxPlayers = maxPlayers
                         )
-                        // Generate a simple room ID for now (server will provide the real one)
                         onRoomCreated("", playerName, config)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = playerName.isNotBlank() && !isCreating
+                enabled = playerName.isNotBlank() && isConnected && !isLoading
             ) {
-                if (isCreating) {
+                if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Text(
-                        text = "Crear Sala",
+                        text = if (isConnected) "Crear Sala" else "Conectando...",
                         style = MaterialTheme.typography.titleLarge
                     )
                 }

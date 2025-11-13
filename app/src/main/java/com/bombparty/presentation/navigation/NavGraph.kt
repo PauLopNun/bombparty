@@ -81,7 +81,10 @@ fun NavGraph(
                 },
                 onRoomCreated = { _, playerName, config ->
                     viewModel.createRoom(config, playerName)
-                }
+                },
+                isLoading = uiState.isLoading,
+                isConnected = uiState.isConnected,
+                error = uiState.error
             )
         }
 
