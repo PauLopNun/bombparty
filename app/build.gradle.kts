@@ -95,7 +95,7 @@ dependencies {
 
     // WebSocket & Networking
     implementation("io.ktor:ktor-client-core:2.3.7")
-    implementation("io.ktor:ktor-client-cio:2.3.7")
+    implementation("io.ktor:ktor-client-okhttp:2.3.7")  // Cambiado de CIO a OkHttp para mejor soporte Android
     implementation("io.ktor:ktor-client-websockets:2.3.7")
     implementation("io.ktor:ktor-client-logging:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")

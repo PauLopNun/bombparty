@@ -3,7 +3,7 @@ package com.bombparty.network
 import com.bombparty.network.dto.ServerMessage
 import com.bombparty.network.dto.WebSocketMessage
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.Json
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,9 +29,17 @@ class WebSocketClient @Inject constructor() {
         classDiscriminator = "type"
     }
 
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(OkHttp) {
+        engine {
+            config {
+                connectTimeout(30, TimeUnit.SECONDS)
+                readTimeout(30, TimeUnit.SECONDS)
+                writeTimeout(30, TimeUnit.SECONDS)
+            }
+        }
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
+            pingInterval = 20_000  // ping cada 20 segundos
         }
         install(ContentNegotiation) {
             json(json)
