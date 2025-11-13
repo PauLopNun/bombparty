@@ -23,6 +23,10 @@ fun main() {
     println("Host: $host")
     println("Port: $port")
     println("WebSocket endpoint: ws://$host:$port/game")
+    println("Environment variables:")
+    println("  PORT: ${System.getenv("PORT")}")
+    println("  HOST: ${System.getenv("HOST")}")
+    println("  RAILWAY_ENVIRONMENT: ${System.getenv("RAILWAY_ENVIRONMENT")}")
     println("=".repeat(50))
 
     embeddedServer(Netty, port = port, host = host, module = Application::module)
@@ -30,6 +34,21 @@ fun main() {
 }
 
 fun Application.module() {
+    // Interceptor para LOG de TODAS las peticiones
+    intercept(ApplicationCallPipeline.Monitoring) {
+        val uri = call.request.local.uri
+        val method = call.request.local.method.value
+        val headers = call.request.headers
+
+        println("🔵 INCOMING REQUEST:")
+        println("   Method: $method")
+        println("   URI: $uri")
+        println("   Upgrade header: ${headers["Upgrade"]}")
+        println("   Connection header: ${headers["Connection"]}")
+        println("   Sec-WebSocket-Key: ${headers["Sec-WebSocket-Key"]}")
+        println("   All headers: ${headers.entries().joinToString()}")
+    }
+
     install(CallLogging) {
         level = Level.INFO
     }
