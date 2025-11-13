@@ -36,10 +36,13 @@ fun GameScreen(
     val uiState by viewModel.uiState.collectAsState()
     val gameState = uiState.gameState
 
-    LaunchedEffect(Unit) {
-        // La URL del servidor se configura en utils/Config.kt
-        // Cambia Config.IS_PRODUCTION = true cuando despliegues a producción
-        viewModel.connectToServer(Config.SERVER_URL)
+    // Don't connect again if already connected (shared ViewModel from CreateRoom/JoinRoom)
+    LaunchedEffect(uiState.isConnected) {
+        if (!uiState.isConnected) {
+            // La URL del servidor se configura en utils/Config.kt
+            // Cambia Config.IS_PRODUCTION = true cuando despliegues a producción
+            viewModel.connectToServer(Config.SERVER_URL)
+        }
     }
 
     Scaffold(

@@ -60,6 +60,9 @@ class GameViewModel @Inject constructor(
     private var timerJob: Job? = null
 
     fun connectToServer(serverUrl: String) {
+        // Don't reconnect if already connected
+        if (_uiState.value.isConnected) return
+
         connectionJob?.cancel()
         connectionJob = viewModelScope.launch {
             try {

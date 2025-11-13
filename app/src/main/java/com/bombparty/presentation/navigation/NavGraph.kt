@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -45,17 +46,16 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.CreateRoom.route) {
-            val viewModel: GameViewModel = hiltViewModel()
+        composable(Screen.CreateRoom.route) { backStackEntry ->
+            // Get ViewModel scoped to this entry (will be shared with child destinations)
+            val viewModel: GameViewModel = hiltViewModel(backStackEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
 
             // Auto-navigate to lobby when room is created
             LaunchedEffect(uiState.room?.id) {
                 uiState.room?.id?.let { roomId ->
-                    navController.navigate(Screen.Lobby.createRoute(roomId)) {
-                        popUpTo(Screen.CreateRoom.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Lobby.createRoute(roomId))
                 }
             }
 
@@ -75,17 +75,16 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.JoinRoom.route) {
-            val viewModel: GameViewModel = hiltViewModel()
+        composable(Screen.JoinRoom.route) { backStackEntry ->
+            // Get ViewModel scoped to this entry (will be shared with child destinations)
+            val viewModel: GameViewModel = hiltViewModel(backStackEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
 
             // Auto-navigate to lobby when room is joined
             LaunchedEffect(uiState.room?.id) {
                 uiState.room?.id?.let { roomId ->
-                    navController.navigate(Screen.Lobby.createRoute(roomId)) {
-                        popUpTo(Screen.JoinRoom.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Lobby.createRoute(roomId))
                 }
             }
 
@@ -110,16 +109,23 @@ fun NavGraph(
             arguments = listOf(navArgument("roomId") { type = NavType.StringType })
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
-            val viewModel: GameViewModel = hiltViewModel()
+
+            // Get ViewModel from the previous entry (CreateRoom or JoinRoom)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
+                    navController.currentBackStack.value.any { entry ->
+                        entry.destination.route == Screen.CreateRoom.route
+                    }
+                } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+            }
+            val viewModel: GameViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
 
             // Auto-navigate to game when game starts
             LaunchedEffect(uiState.gameState) {
                 if (uiState.gameState != null) {
-                    navController.navigate(Screen.Game.createRoute(roomId)) {
-                        popUpTo(Screen.Lobby.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Game.createRoute(roomId))
                 }
             }
 
@@ -152,7 +158,17 @@ fun NavGraph(
             arguments = listOf(navArgument("roomId") { type = NavType.StringType })
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
-            val viewModel: GameViewModel = hiltViewModel()
+
+            // Get ViewModel from the previous entry (CreateRoom or JoinRoom via Lobby)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
+                    navController.currentBackStack.value.any { entry ->
+                        entry.destination.route == Screen.CreateRoom.route
+                    }
+                } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+            }
+            val viewModel: GameViewModel = hiltViewModel(parentEntry)
+
             GameScreen(
                 viewModel = viewModel,
                 roomId = roomId,
