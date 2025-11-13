@@ -26,7 +26,10 @@
       "Bash(sudo apt-get install:*)",
       "Bash(adb logcat:*)",
       "Bash(python3:*)",
-      "Bash(timeout 10 python3:*)"
+      "Bash(timeout 10 python3:*)",
+      "Bash(timeout 10 node:*)",
+      "Bash(npm install:*)",
+      "Bash(timeout 20 node:*)"
     ],
     "deny": [],
     "ask": []

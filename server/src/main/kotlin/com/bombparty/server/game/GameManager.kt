@@ -401,9 +401,12 @@ class GameManager {
                 }
             }
             jsonBuilder.append("}")
-            session.send(Frame.Text(jsonBuilder.toString()))
+            val jsonString = jsonBuilder.toString()
+            println("📤 Sending JSON: $jsonString")
+            session.send(Frame.Text(jsonString))
+            println("✅ Message sent successfully")
         } catch (e: Exception) {
-            println("Error sending message: ${e.message}")
+            println("❌ Error sending message: ${e.message}")
             e.printStackTrace()
         }
     }
