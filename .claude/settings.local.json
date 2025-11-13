@@ -12,7 +12,12 @@
       "Bash(git update-index:*)",
       "Bash(git tag:*)",
       "Bash(git push)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(convert --version:*)",
+      "Bash(python create_icons.py:*)",
+      "Bash(pip install:*)",
+      "Bash(.gradlew assembleDebug:*)",
+      "Bash(gradlew.bat assembleDebug:*)"
     ],
     "deny": [],
     "ask": []
