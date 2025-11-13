@@ -1,0 +1,24 @@
+{
+  "name": "bombparty",
+  "version": "1.0.0",
+  "description": "Una versión multiplayer del popular juego de palabras BombParty, desarrollada en Kotlin con Jetpack Compose para Android.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PauLopNun/bombparty.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/PauLopNun/bombparty/issues"
+  },
+  "homepage": "https://github.com/PauLopNun/bombparty#readme",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^2.0.37"
+  }
+}

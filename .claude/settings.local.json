@@ -17,7 +17,13 @@
       "Bash(python create_icons.py:*)",
       "Bash(pip install:*)",
       "Bash(.gradlew assembleDebug:*)",
-      "Bash(gradlew.bat assembleDebug:*)"
+      "Bash(gradlew.bat assembleDebug:*)",
+      "Bash(echo:*)",
+      "Bash(java:*)",
+      "Bash(pkill:*)",
+      "Bash(update-java-alternatives:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)"
     ],
     "deny": [],
     "ask": []
