@@ -79,6 +79,15 @@ fun GameScreen(
             ) {
                 CircularProgressIndicator()
             }
+        } else if (gameState.status.toString() == "FINISHED") {
+            // Victory screen
+            VictoryScreen(
+                gameState = gameState,
+                onPlayAgain = onNavigateBack,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            )
         } else {
             Column(
                 modifier = Modifier
@@ -371,6 +380,140 @@ fun WordInput(
                     MaterialTheme.colorScheme.onPrimary
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun VictoryScreen(
+    gameState: GameState,
+    onPlayAgain: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val winner = gameState.players.find { it.id == gameState.winnerId }
+
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Trophy
+        Text(
+            text = "🏆",
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontSize = MaterialTheme.typography.displayLarge.fontSize * 2
+            )
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Winner announcement
+        Text(
+            text = "¡Victoria!",
+            style = MaterialTheme.typography.displayLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        winner?.let {
+            Text(
+                text = it.name,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Final scores
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Resultado Final",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                gameState.players.forEach { player ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (player.id == gameState.winnerId)
+                                            SuccessGreen
+                                        else
+                                            Color.Gray
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = player.name.firstOrNull()?.uppercase() ?: "?",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Text(
+                                text = player.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (player.id == gameState.winnerId) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+
+                        Text(
+                            text = "❤️ ${player.lives}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = if (player.lives > 0) BombRed else Color.Gray
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Play Again button
+        Button(
+            onClick = onPlayAgain,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text(
+                text = "Jugar de Nuevo",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }

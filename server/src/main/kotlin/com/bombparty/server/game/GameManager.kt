@@ -348,7 +348,13 @@ class GameManager {
 
         val alivePlayers = room.players.filter { it.isAlive }
         if (alivePlayers.size == 1) {
+            // Enviar estado final del juego con winnerId
+            val finalGameState = createGameStateDto(room).copy(
+                status = "FINISHED",
+                winnerId = alivePlayers.first().id
+            )
             room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.GameStateUpdate(finalGameState))
                 sendMessage(player.session, ServerMessage.GameFinished(
                     winnerId = alivePlayers.first().id,
                     winnerName = alivePlayers.first().name
