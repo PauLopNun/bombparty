@@ -493,9 +493,13 @@ class GameManager {
                     rooms.remove(roomId)
                 } else {
                     // Continue game with new syllable
-                    val newSyllable = syllableGenerator.generateSyllable(SyllableDifficulty.BEGINNER)
+                    val syllables = listOf("ar", "er", "or", "an", "en", "on", "al", "el", "as", "es", "os",
+                        "ra", "re", "ro", "na", "ne", "no", "la", "le", "lo", "sa", "se", "so",
+                        "ta", "te", "to", "ca", "co", "ma", "me", "mo", "pa", "pe", "po")
+
+                    val newSyllable = syllables.random()
                     room.currentSyllable = newSyllable
-                    val bombTime = (room.config["minTurnDuration"] as? Int ?: 5).toFloat()
+                    val bombTime = (10..20).random().toFloat()
                     room.bombTimeRemaining = bombTime
 
                     room.players.forEach { player ->
@@ -503,7 +507,7 @@ class GameManager {
                     }
 
                     // Start new bomb timer
-                    startBombTimer(room, roomId)
+                    startBombTimer(room)
 
                     // Send updated game state
                     val gameStateDto = createGameStateDto(room)
