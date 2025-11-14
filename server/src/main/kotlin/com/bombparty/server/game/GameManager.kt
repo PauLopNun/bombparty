@@ -167,39 +167,62 @@ class GameManager {
         val room = rooms[roomId] ?: return null
 
         if (room.players.size >= 16) {
-            sendToSession(session, mapOf("type" to "error", "message" to "Room is full"))
+            sendMessage(session, ServerMessage.Error("Room is full"))
             return null
         }
 
         val playerId = UUID.randomUUID().toString()
+        val initialLives = room.config["initialLives"] as? Int ?: 2
         val player = ServerPlayer(
             id = playerId,
             name = playerName,
             session = session,
-            lives = 2
+            lives = initialLives
         )
 
         room.players.add(player)
         playerToRoom[playerId] = roomId
 
-        // Notify all players
-        broadcastToRoom(room, mapOf(
-            "type" to "player_joined",
-            "playerId" to playerId,
-            "playerName" to playerName
-        ))
+        // Notify all OTHER players that a new player joined
+        val newPlayerDto = PlayerDto(
+            id = playerId,
+            name = playerName,
+            lives = initialLives
+        )
+        room.players.filter { it.id != playerId }.forEach { otherPlayer ->
+            sendMessage(otherPlayer.session, ServerMessage.PlayerJoined(newPlayerDto))
+        }
 
-        sendToPlayer(player, mapOf(
-            "type" to "room_joined",
-            "roomId" to roomId,
-            "playerId" to playerId,
-            "players" to room.players.map { mapOf(
-                "id" to it.id,
-                "name" to it.name,
-                "lives" to it.lives,
-                "isAlive" to it.isAlive
-            )}
-        ))
+        // Send RoomJoined to the new player with full room state
+        val configDto = GameConfigDto(
+            language = room.config["language"] as? String ?: "SPANISH",
+            syllableDifficulty = room.config["syllableDifficulty"] as? String ?: "BEGINNER",
+            minTurnDuration = room.config["minTurnDuration"] as? Int ?: 5,
+            maxSyllableLifespan = room.config["maxSyllableLifespan"] as? Int ?: 2,
+            initialLives = initialLives,
+            maxLives = room.config["maxLives"] as? Int ?: 3,
+            maxPlayers = room.config["maxPlayers"] as? Int ?: 16
+        )
+
+        val playersDto = room.players.map { p ->
+            PlayerDto(
+                id = p.id,
+                name = p.name,
+                lives = p.lives,
+                isAlive = p.isAlive,
+                isCurrentTurn = false
+            )
+        }
+
+        val roomDto = GameRoomDto(
+            id = roomId,
+            hostId = room.hostId,
+            config = configDto,
+            players = playersDto,
+            isStarted = false
+        )
+
+        sendMessage(session, ServerMessage.RoomJoined(roomDto, playerId))
 
         return playerId
     }
