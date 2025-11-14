@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bombparty.R
+import com.bombparty.domain.model.GameState
 import com.bombparty.domain.model.Player
 import com.bombparty.presentation.theme.BombRed
 import com.bombparty.utils.Config
