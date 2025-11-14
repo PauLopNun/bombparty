@@ -47,10 +47,15 @@ data class BombStateDto(
 
 @Serializable
 data class GameStateDto(
-    val currentPlayerIndex: Int,
+    val roomId: String,
     val players: List<PlayerDto>,
     val config: GameConfigDto,
-    val bombState: BombStateDto?
+    val status: String = "PLAYING",
+    val currentPlayerIndex: Int = 0,
+    val bombState: BombStateDto? = null,
+    val usedWordsInRound: Set<String> = emptySet(),
+    val winnerId: String? = null,
+    val currentBonusLetters: Set<Char> = emptySet()
 )
 
 @Serializable

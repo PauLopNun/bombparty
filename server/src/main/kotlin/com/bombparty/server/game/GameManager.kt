@@ -297,10 +297,15 @@ class GameManager {
         }
 
         return GameStateDto(
+            roomId = room.id,
             currentPlayerIndex = room.currentPlayerIndex,
             players = playersDto,
             config = configDto,
-            bombState = bombState
+            status = "PLAYING",
+            bombState = bombState,
+            usedWordsInRound = room.usedWords,
+            winnerId = null,
+            currentBonusLetters = emptySet()
         )
     }
 
