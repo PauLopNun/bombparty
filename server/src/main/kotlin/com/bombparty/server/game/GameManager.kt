@@ -191,6 +191,8 @@ class GameManager {
         room.players.add(player)
         playerToRoom[playerId] = roomId
 
+        println("🎮 GameManager: Player $playerName joined room $roomId. Total players: ${room.players.size}")
+
         // Notify all OTHER players that a new player joined
         val newPlayerDto = PlayerDto(
             id = playerId,
@@ -199,6 +201,7 @@ class GameManager {
             avatar = player.avatar
         )
         room.players.filter { it.id != playerId }.forEach { otherPlayer ->
+            println("📤 Notifying ${otherPlayer.name} about new player $playerName")
             sendMessage(otherPlayer.session, ServerMessage.PlayerJoined(newPlayerDto))
         }
 
@@ -232,6 +235,7 @@ class GameManager {
             isStarted = false
         )
 
+        println("📤 Sending RoomJoined to $playerName with ${playersDto.size} players: ${playersDto.map { it.name }}")
         sendMessage(session, ServerMessage.RoomJoined(roomDto, playerId))
 
         return playerId

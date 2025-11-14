@@ -226,6 +226,8 @@ class GameViewModel @Inject constructor(
 
             is ServerMessage.RoomJoined -> {
                 println("GameViewModel: Joined room ${message.room.id}, playerId: ${message.playerId}")
+                println("GameViewModel: Room has ${message.room.players.size} players: ${message.room.players.map { it.name }}")
+                println("GameViewModel: Max players: ${message.room.config.maxPlayers}")
 
                 // Guardar sesión
                 sessionManager.roomId = message.room.id
@@ -241,6 +243,8 @@ class GameViewModel @Inject constructor(
                         lastMessage = "Joined room successfully"
                     )
                 }
+
+                println("GameViewModel: UI State updated. Room players: ${_uiState.value.room?.players?.size}")
             }
 
             is ServerMessage.GameStarted -> {
@@ -350,8 +354,10 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.PlayerJoined -> {
+                println("GameViewModel: PlayerJoined event - ${message.player.name}")
                 _uiState.update { state ->
                     val updatedRoom = state.room?.addPlayer(message.player)
+                    println("GameViewModel: Updated room with ${updatedRoom?.players?.size} players")
                     state.copy(
                         room = updatedRoom ?: state.room,
                         lastMessage = "${message.player.name} joined the room"
