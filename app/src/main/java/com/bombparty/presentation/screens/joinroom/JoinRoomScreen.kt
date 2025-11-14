@@ -1,24 +1,34 @@
 package com.bombparty.presentation.screens.joinroom
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.bombparty.domain.model.Avatar
+import com.bombparty.domain.model.AvatarOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinRoomScreen(
     onNavigateBack: () -> Unit,
-    onJoinRoom: (roomId: String, playerName: String) -> Unit
+    onJoinRoom: (roomId: String, playerName: String, avatar: String) -> Unit
 ) {
     var roomId by remember { mutableStateOf("") }
     var playerName by remember { mutableStateOf("") }
+    var selectedAvatar by remember { mutableStateOf(AvatarOptions.HAPPY) }
     var isJoining by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -82,6 +92,47 @@ fun JoinRoomScreen(
                 enabled = !isJoining
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Avatar Selector
+            Text(
+                text = "Elige tu avatar",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(AvatarOptions.ALL) { avatar ->
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(CircleShape)
+                            .background(
+                                if (selectedAvatar == avatar)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            .clickable { selectedAvatar = avatar },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = avatar.emoji,
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Player Name Input
@@ -95,14 +146,14 @@ fun JoinRoomScreen(
                 enabled = !isJoining
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Join Button
             Button(
                 onClick = {
                     if (roomId.isNotBlank() && playerName.isNotBlank()) {
                         isJoining = true
-                        onJoinRoom(roomId.trim(), playerName.trim())
+                        onJoinRoom(roomId.trim(), playerName.trim(), selectedAvatar.emoji)
                     }
                 },
                 modifier = Modifier

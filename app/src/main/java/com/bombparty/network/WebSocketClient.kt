@@ -27,6 +27,7 @@ class WebSocketClient @Inject constructor() {
         ignoreUnknownKeys = true
         isLenient = true
         classDiscriminator = "type"
+        encodeDefaults = true  // Enviar todos los campos, incluso con valores por defecto
     }
 
     private val client = HttpClient(OkHttp) {

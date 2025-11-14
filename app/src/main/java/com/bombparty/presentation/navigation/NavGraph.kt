@@ -122,8 +122,8 @@ fun NavGraph(
                     viewModel.disconnect()
                     navController.popBackStack()
                 },
-                onJoinRoom = { roomId, playerName ->
-                    viewModel.joinRoom(roomId, playerName)
+                onJoinRoom = { roomId, playerName, avatar ->
+                    viewModel.joinRoom(roomId, playerName, avatar)
                 }
             )
         }
