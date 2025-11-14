@@ -38,6 +38,22 @@ data class GameRoomDto(
 )
 
 @Serializable
+data class BombStateDto(
+    val currentSyllable: String,
+    val timeRemaining: Float,
+    val maxTime: Float,
+    val syllableTurnsRemaining: Int
+)
+
+@Serializable
+data class GameStateDto(
+    val currentPlayerIndex: Int,
+    val players: List<PlayerDto>,
+    val config: GameConfigDto,
+    val bombState: BombStateDto?
+)
+
+@Serializable
 sealed class ServerMessage {
     @Serializable
     @SerialName("RoomCreated")
@@ -54,6 +70,46 @@ sealed class ServerMessage {
     @Serializable
     @SerialName("PlayerLeft")
     data class PlayerLeft(val playerId: String) : ServerMessage()
+
+    @Serializable
+    @SerialName("GameStarted")
+    data class GameStarted(val gameState: GameStateDto) : ServerMessage()
+
+    @Serializable
+    @SerialName("GameStateUpdate")
+    data class GameStateUpdate(val gameState: GameStateDto) : ServerMessage()
+
+    @Serializable
+    @SerialName("WordAccepted")
+    data class WordAccepted(val word: String, val playerId: String, val gainedLife: Boolean) : ServerMessage()
+
+    @Serializable
+    @SerialName("WordRejected")
+    data class WordRejected(val word: String, val reason: String) : ServerMessage()
+
+    @Serializable
+    @SerialName("BombExplodedEvent")
+    data class BombExplodedEvent(val playerId: String, val playerName: String, val livesRemaining: Int) : ServerMessage()
+
+    @Serializable
+    @SerialName("PlayerEliminated")
+    data class PlayerEliminated(val playerId: String, val playerName: String) : ServerMessage()
+
+    @Serializable
+    @SerialName("GameFinished")
+    data class GameFinished(val winnerId: String, val winnerName: String) : ServerMessage()
+
+    @Serializable
+    @SerialName("NewSyllable")
+    data class NewSyllable(val syllable: String, val bombTime: Float) : ServerMessage()
+
+    @Serializable
+    @SerialName("BombTimerUpdate")
+    data class BombTimerUpdate(val timeRemaining: Float) : ServerMessage()
+
+    @Serializable
+    @SerialName("ConfigUpdated")
+    data class ConfigUpdated(val config: GameConfigDto) : ServerMessage()
 
     @Serializable
     @SerialName("Error")

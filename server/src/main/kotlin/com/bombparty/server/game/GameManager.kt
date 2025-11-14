@@ -231,22 +231,11 @@ class GameManager {
         val room = rooms[roomId] ?: return
 
         if (room.players.size < 2) {
-            broadcastToRoom(room, mapOf(
-                "type" to "error",
-                "message" to "Need at least 2 players"
-            ))
+            room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.Error("Need at least 2 players"))
+            }
             return
         }
-
-        broadcastToRoom(room, mapOf(
-            "type" to "game_started",
-            "players" to room.players.map { mapOf(
-                "id" to it.id,
-                "name" to it.name,
-                "lives" to it.lives,
-                "isAlive" to it.isAlive
-            )}
-        ))
 
         startNewRound(room)
     }
@@ -259,14 +248,59 @@ class GameManager {
         room.currentSyllable = syllables.random()
         room.bombTimeRemaining = (10..20).random().toFloat()
 
-        broadcastToRoom(room, mapOf(
-            "type" to "new_syllable",
-            "syllable" to room.currentSyllable!!,
-            "bombTime" to room.bombTimeRemaining,
-            "currentPlayerId" to room.players[room.currentPlayerIndex].id
-        ))
+        // Send NewSyllable message
+        room.players.forEach { player ->
+            sendMessage(player.session, ServerMessage.NewSyllable(
+                syllable = room.currentSyllable!!,
+                bombTime = room.bombTimeRemaining
+            ))
+        }
+
+        // Send GameStarted with full game state
+        val gameState = createGameStateDto(room)
+        room.players.forEach { player ->
+            sendMessage(player.session, ServerMessage.GameStarted(gameState))
+        }
 
         startBombTimer(room)
+    }
+
+    private fun createGameStateDto(room: ServerGameRoom): GameStateDto {
+        val playersDto = room.players.mapIndexed { index, player ->
+            PlayerDto(
+                id = player.id,
+                name = player.name,
+                lives = player.lives,
+                isAlive = player.isAlive,
+                isCurrentTurn = index == room.currentPlayerIndex
+            )
+        }
+
+        val configDto = GameConfigDto(
+            language = room.config["language"] as? String ?: "SPANISH",
+            syllableDifficulty = room.config["syllableDifficulty"] as? String ?: "BEGINNER",
+            minTurnDuration = room.config["minTurnDuration"] as? Int ?: 5,
+            maxSyllableLifespan = room.config["maxSyllableLifespan"] as? Int ?: 2,
+            initialLives = room.config["initialLives"] as? Int ?: 2,
+            maxLives = room.config["maxLives"] as? Int ?: 3,
+            maxPlayers = room.config["maxPlayers"] as? Int ?: 16
+        )
+
+        val bombState = room.currentSyllable?.let {
+            BombStateDto(
+                currentSyllable = it,
+                timeRemaining = room.bombTimeRemaining,
+                maxTime = room.bombTimeRemaining,
+                syllableTurnsRemaining = room.config["maxSyllableLifespan"] as? Int ?: 2
+            )
+        }
+
+        return GameStateDto(
+            currentPlayerIndex = room.currentPlayerIndex,
+            players = playersDto,
+            config = configDto,
+            bombState = bombState
+        )
     }
 
     private fun startBombTimer(room: ServerGameRoom) {
@@ -290,27 +324,30 @@ class GameManager {
         currentPlayer.lives--
         if (currentPlayer.lives <= 0) {
             currentPlayer.isAlive = false
-            broadcastToRoom(room, mapOf(
-                "type" to "player_eliminated",
-                "playerId" to currentPlayer.id,
-                "playerName" to currentPlayer.name
-            ))
+            room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.PlayerEliminated(
+                    playerId = currentPlayer.id,
+                    playerName = currentPlayer.name
+                ))
+            }
         } else {
-            broadcastToRoom(room, mapOf(
-                "type" to "bomb_exploded",
-                "playerId" to currentPlayer.id,
-                "playerName" to currentPlayer.name,
-                "livesRemaining" to currentPlayer.lives
-            ))
+            room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.BombExplodedEvent(
+                    playerId = currentPlayer.id,
+                    playerName = currentPlayer.name,
+                    livesRemaining = currentPlayer.lives
+                ))
+            }
         }
 
         val alivePlayers = room.players.filter { it.isAlive }
         if (alivePlayers.size == 1) {
-            broadcastToRoom(room, mapOf(
-                "type" to "game_finished",
-                "winnerId" to alivePlayers.first().id,
-                "winnerName" to alivePlayers.first().name
-            ))
+            room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.GameFinished(
+                    winnerId = alivePlayers.first().id,
+                    winnerName = alivePlayers.first().name
+                ))
+            }
             return
         }
 
@@ -323,10 +360,7 @@ class GameManager {
         val currentPlayer = room.players.getOrNull(room.currentPlayerIndex) ?: return
 
         if (currentPlayer.id != playerId) {
-            sendToPlayer(currentPlayer, mapOf(
-                "type" to "error",
-                "message" to "Not your turn"
-            ))
+            sendMessage(currentPlayer.session, ServerMessage.Error("Not your turn"))
             return
         }
 
@@ -335,19 +369,17 @@ class GameManager {
 
         // Basic validation
         if (!normalizedWord.contains(syllable.lowercase())) {
-            sendToPlayer(currentPlayer, mapOf(
-                "type" to "word_rejected",
-                "word" to word,
-                "reason" to "Word doesn't contain syllable"
+            sendMessage(currentPlayer.session, ServerMessage.WordRejected(
+                word = word,
+                reason = "Word doesn't contain syllable"
             ))
             return
         }
 
         if (normalizedWord in room.usedWords) {
-            sendToPlayer(currentPlayer, mapOf(
-                "type" to "word_rejected",
-                "word" to word,
-                "reason" to "Word already used"
+            sendMessage(currentPlayer.session, ServerMessage.WordRejected(
+                word = word,
+                reason = "Word already used"
             ))
             return
         }
@@ -356,11 +388,13 @@ class GameManager {
         room.usedWords.add(normalizedWord)
         room.bombTimerJob?.cancel()
 
-        broadcastToRoom(room, mapOf(
-            "type" to "word_accepted",
-            "word" to word,
-            "playerId" to playerId
-        ))
+        room.players.forEach { player ->
+            sendMessage(player.session, ServerMessage.WordAccepted(
+                word = word,
+                playerId = playerId,
+                gainedLife = false
+            ))
+        }
 
         nextTurn(room)
         startNewRound(room)
@@ -389,21 +423,10 @@ class GameManager {
         if (room.players.isEmpty()) {
             rooms.remove(roomId)
         } else {
-            broadcastToRoom(room, mapOf(
-                "type" to "player_left",
-                "playerId" to playerId
-            ))
+            room.players.forEach { player ->
+                sendMessage(player.session, ServerMessage.PlayerLeft(playerId))
+            }
         }
-    }
-
-    private suspend fun broadcastToRoom(room: ServerGameRoom, message: Map<String, Any>) {
-        room.players.forEach { player ->
-            sendToPlayer(player, message)
-        }
-    }
-
-    private suspend fun sendToPlayer(player: ServerPlayer, message: Map<String, Any>) {
-        sendToSession(player.session, message)
     }
 
     private suspend fun sendMessage(session: WebSocketSession, message: ServerMessage) {
