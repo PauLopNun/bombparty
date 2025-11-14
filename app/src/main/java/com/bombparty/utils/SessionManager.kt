@@ -19,13 +19,6 @@ class SessionManager @Inject constructor(
         Context.MODE_PRIVATE
     )
 
-    companion object {
-        // Factory method for manual creation when needed outside of Hilt scope
-        fun create(context: Context): SessionManager {
-            return SessionManager(context.applicationContext)
-        }
-    }
-
     var roomId: String?
         get() = prefs.getString(KEY_ROOM_ID, null)
         set(value) = prefs.edit().putString(KEY_ROOM_ID, value).apply()
@@ -60,5 +53,10 @@ class SessionManager @Inject constructor(
         private const val KEY_PLAYER_NAME = "player_name"
         private const val KEY_PLAYER_AVATAR = "player_avatar"
         private const val KEY_IN_GAME = "in_game"
+
+        // Factory method for manual creation when needed outside of Hilt scope
+        fun create(context: Context): SessionManager {
+            return SessionManager(context.applicationContext)
+        }
     }
 }
