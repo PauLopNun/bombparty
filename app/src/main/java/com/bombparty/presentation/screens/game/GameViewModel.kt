@@ -387,9 +387,10 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.ConfigUpdated -> {
+                val configDomain = message.config.toDomain()
                 _uiState.update { state ->
                     state.copy(
-                        gameState = state.gameState?.copy(config = message.config)
+                        gameState = state.gameState?.copy(config = configDomain)
                     )
                 }
             }

@@ -55,13 +55,22 @@ fun BombStateDto.toDomain(): BombState = BombState(
     syllableTurnsRemaining = syllableTurnsRemaining
 )
 
-fun GameStateDto.toDomain(): GameState = GameState(
-    roomId = roomId,
-    players = players.map { it.toDomain() },
-    config = config.toDomain(),
-    status = status,
-    currentPlayerIndex = currentPlayerIndex,
-    bombState = bombState?.toDomain(),
-    usedWordsInRound = usedWordsInRound,
-    winnerId = winnerId
-)
+fun GameStateDto.toDomain(): GameState {
+    val gameStatus = when (status) {
+        "WAITING" -> GameStatus.WAITING
+        "PLAYING" -> GameStatus.PLAYING
+        "FINISHED" -> GameStatus.FINISHED
+        else -> GameStatus.WAITING
+    }
+
+    return GameState(
+        roomId = roomId,
+        players = players.map { it.toDomain() },
+        config = config.toDomain(),
+        status = gameStatus,
+        currentPlayerIndex = currentPlayerIndex,
+        bombState = bombState?.toDomain(),
+        usedWordsInRound = usedWordsInRound,
+        winnerId = winnerId
+    )
+}
