@@ -46,6 +46,7 @@ class GameManager {
         ignoreUnknownKeys = true
         prettyPrint = true
         classDiscriminator = "type"
+        encodeDefaults = true  // Incluir campos con valores por defecto
     }
 
     suspend fun createRoom(
