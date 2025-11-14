@@ -52,7 +52,8 @@ data class GameUiState(
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val webSocketClient: WebSocketClient,
-    private val dictionaryRepository: DictionaryRepository
+    private val dictionaryRepository: DictionaryRepository,
+    private val sessionManager: com.bombparty.utils.SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameUiState())
@@ -116,6 +117,11 @@ class GameViewModel @Inject constructor(
             try {
                 println("GameViewModel: Creating room with player name: $playerName, avatar: $avatar")
                 _uiState.update { it.copy(isLoading = true, error = null) }
+
+                // Guardar nombre y avatar en sesión
+                sessionManager.playerName = playerName
+                sessionManager.playerAvatar = avatar
+
                 webSocketClient.sendMessage(
                     WebSocketMessage.CreateRoom(config, playerName, avatar)
                 )
@@ -136,10 +142,19 @@ class GameViewModel @Inject constructor(
     fun joinRoom(roomId: String, playerName: String, avatar: String = "😀") {
         viewModelScope.launch {
             try {
+                println("GameViewModel: Joining room $roomId with player name: $playerName, avatar: $avatar")
+
+                // Guardar en sesión
+                sessionManager.playerName = playerName
+                sessionManager.playerAvatar = avatar
+
                 webSocketClient.sendMessage(
                     WebSocketMessage.JoinRoom(roomId, playerName, avatar)
                 )
+                println("GameViewModel: Join room message sent")
             } catch (e: Exception) {
+                println("GameViewModel: Error joining room: ${e.message}")
+                e.printStackTrace()
                 _uiState.update { it.copy(error = "Error joining room: ${e.message}") }
             }
         }
@@ -192,6 +207,12 @@ class GameViewModel @Inject constructor(
         when (message) {
             is ServerMessage.RoomCreated -> {
                 println("GameViewModel: Room created with ID: ${message.room.id}")
+
+                // Guardar sesión
+                sessionManager.roomId = message.room.id
+                sessionManager.playerId = message.playerId
+                sessionManager.isInGame = true
+
                 _uiState.update {
                     it.copy(
                         room = message.room,
@@ -204,6 +225,13 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.RoomJoined -> {
+                println("GameViewModel: Joined room ${message.room.id}, playerId: ${message.playerId}")
+
+                // Guardar sesión
+                sessionManager.roomId = message.room.id
+                sessionManager.playerId = message.playerId
+                sessionManager.isInGame = true
+
                 _uiState.update {
                     it.copy(
                         room = message.room,
@@ -379,6 +407,10 @@ class GameViewModel @Inject constructor(
             connectionJob?.cancel()
             soundManager?.stopAllSounds()
             webSocketClient.disconnect()
+
+            // Limpiar sesión
+            sessionManager.clearSession()
+
             _uiState.update { GameUiState() }
         }
     }

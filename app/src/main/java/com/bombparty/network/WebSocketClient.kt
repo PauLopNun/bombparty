@@ -10,6 +10,7 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -22,6 +23,8 @@ import javax.inject.Singleton
 @Singleton
 class WebSocketClient @Inject constructor() {
     private var session: DefaultClientWebSocketSession? = null
+    private var lastServerUrl: String? = null
+    private var isReconnecting = false
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -34,13 +37,16 @@ class WebSocketClient @Inject constructor() {
         engine {
             config {
                 connectTimeout(30, TimeUnit.SECONDS)
-                readTimeout(30, TimeUnit.SECONDS)
+                readTimeout(0, TimeUnit.SECONDS)  // Sin timeout de lectura
                 writeTimeout(30, TimeUnit.SECONDS)
+                // Mantener conexión viva más agresivamente
+                pingInterval(15, TimeUnit.SECONDS)
             }
         }
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
-            pingInterval = 20_000  // ping cada 20 segundos
+            pingInterval = 15_000  // ping cada 15 segundos (más frecuente)
+            maxFrameSize = Long.MAX_VALUE
         }
         install(ContentNegotiation) {
             json(json)
