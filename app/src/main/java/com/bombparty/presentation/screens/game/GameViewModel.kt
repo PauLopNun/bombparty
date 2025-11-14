@@ -34,8 +34,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.TimeoutCancellationException
 import javax.inject.Inject
 
 data class GameUiState(
@@ -79,26 +77,16 @@ class GameViewModel @Inject constructor(
                 println("GameViewModel: Connecting to $serverUrl")
                 _uiState.update { it.copy(isLoading = true, error = null) }
 
-                withTimeout(30000) { // 30 second timeout
-                    webSocketClient.connect(
-                        serverUrl = serverUrl,
-                        onConnected = {
-                            println("GameViewModel: Connection established")
-                            _uiState.update { it.copy(isConnected = true, isLoading = false) }
-                        }
-                    ).collect { message ->
-                        println("GameViewModel: Received message: ${message::class.simpleName}")
-                        handleServerMessage(message)
+                // Connect and collect messages indefinitely (no timeout)
+                webSocketClient.connect(
+                    serverUrl = serverUrl,
+                    onConnected = {
+                        println("GameViewModel: Connection established")
+                        _uiState.update { it.copy(isConnected = true, isLoading = false) }
                     }
-                }
-            } catch (e: TimeoutCancellationException) {
-                println("GameViewModel: Connection timeout")
-                _uiState.update {
-                    it.copy(
-                        isConnected = false,
-                        error = "Tiempo de conexión agotado. Verifica tu conexión a internet.",
-                        isLoading = false
-                    )
+                ).collect { message ->
+                    println("GameViewModel: Received message: ${message::class.simpleName}")
+                    handleServerMessage(message)
                 }
             } catch (e: Exception) {
                 println("GameViewModel: Connection error: ${e.message}")
