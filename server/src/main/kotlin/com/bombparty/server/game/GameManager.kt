@@ -392,14 +392,34 @@ class GameManager {
         val normalizedWord = word.lowercase().trim()
 
         // Basic validation
-        if (!normalizedWord.contains(syllable.lowercase())) {
+        // 1. Check minimum length (must be longer than just the syllable)
+        if (normalizedWord.length < 3) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
-                reason = "Word doesn't contain syllable"
+                reason = "Word too short (minimum 3 letters)"
             ))
             return
         }
 
+        // 2. Check if word contains the syllable
+        if (!normalizedWord.contains(syllable.lowercase())) {
+            sendMessage(currentPlayer.session, ServerMessage.WordRejected(
+                word = word,
+                reason = "Word doesn't contain syllable '$syllable'"
+            ))
+            return
+        }
+
+        // 3. Check if word is just the syllable (not allowed)
+        if (normalizedWord == syllable.lowercase()) {
+            sendMessage(currentPlayer.session, ServerMessage.WordRejected(
+                word = word,
+                reason = "Cannot submit only the syllable"
+            ))
+            return
+        }
+
+        // 4. Check if word was already used
         if (normalizedWord in room.usedWords) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
