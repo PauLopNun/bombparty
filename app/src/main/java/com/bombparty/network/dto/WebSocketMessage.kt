@@ -49,15 +49,15 @@ sealed class WebSocketMessage {
 sealed class ServerMessage {
     @Serializable
     @SerialName("RoomCreated")
-    data class RoomCreated(val room: GameRoom, val playerId: String) : ServerMessage()
+    data class RoomCreated(val room: GameRoomDto, val playerId: String) : ServerMessage()
 
     @Serializable
     @SerialName("RoomJoined")
-    data class RoomJoined(val room: GameRoom, val playerId: String) : ServerMessage()
+    data class RoomJoined(val room: GameRoomDto, val playerId: String) : ServerMessage()
 
     @Serializable
     @SerialName("PlayerJoined")
-    data class PlayerJoined(val player: Player) : ServerMessage()
+    data class PlayerJoined(val player: PlayerDto) : ServerMessage()
 
     @Serializable
     @SerialName("PlayerLeft")
@@ -65,11 +65,11 @@ sealed class ServerMessage {
 
     @Serializable
     @SerialName("GameStarted")
-    data class GameStarted(val gameState: GameState) : ServerMessage()
+    data class GameStarted(val gameState: GameStateDto) : ServerMessage()
 
     @Serializable
     @SerialName("GameStateUpdate")
-    data class GameStateUpdate(val gameState: GameState) : ServerMessage()
+    data class GameStateUpdate(val gameState: GameStateDto) : ServerMessage()
 
     @Serializable
     @SerialName("WordAccepted")
@@ -113,5 +113,5 @@ sealed class ServerMessage {
 
     @Serializable
     @SerialName("ConfigUpdated")
-    data class ConfigUpdated(val config: GameConfig) : ServerMessage()
+    data class ConfigUpdated(val config: GameConfigDto) : ServerMessage()
 }

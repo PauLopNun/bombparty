@@ -30,6 +30,7 @@ import com.bombparty.domain.model.*
 import com.bombparty.network.WebSocketClient
 import com.bombparty.network.dto.ServerMessage
 import com.bombparty.network.dto.WebSocketMessage
+import com.bombparty.network.dto.toDomain
 import com.bombparty.utils.SoundManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -208,18 +209,21 @@ class GameViewModel @Inject constructor(
             is ServerMessage.RoomCreated -> {
                 println("GameViewModel: Room created with ID: ${message.room.id}")
 
+                // Convert DTO to domain model
+                val roomDomain = message.room.toDomain()
+
                 // Guardar sesión
-                sessionManager.roomId = message.room.id
+                sessionManager.roomId = roomDomain.id
                 sessionManager.playerId = message.playerId
                 sessionManager.isInGame = true
 
                 _uiState.update {
                     it.copy(
-                        room = message.room,
+                        room = roomDomain,
                         currentPlayerId = message.playerId,
                         isConnected = true,
                         isLoading = false,
-                        lastMessage = "Sala creada: ${message.room.id}"
+                        lastMessage = "Sala creada: ${roomDomain.id}"
                     )
                 }
             }
@@ -229,14 +233,18 @@ class GameViewModel @Inject constructor(
                 println("GameViewModel: Room has ${message.room.players.size} players: ${message.room.players.map { it.name }}")
                 println("GameViewModel: Max players: ${message.room.config.maxPlayers}")
 
+                // Convert DTO to domain model
+                val roomDomain = message.room.toDomain()
+                println("GameViewModel: Converted domain room has ${roomDomain.players.size} players")
+
                 // Guardar sesión
-                sessionManager.roomId = message.room.id
+                sessionManager.roomId = roomDomain.id
                 sessionManager.playerId = message.playerId
                 sessionManager.isInGame = true
 
                 _uiState.update {
                     it.copy(
-                        room = message.room,
+                        room = roomDomain,
                         currentPlayerId = message.playerId,
                         isConnected = true,
                         isLoading = false,
@@ -249,9 +257,10 @@ class GameViewModel @Inject constructor(
 
             is ServerMessage.GameStarted -> {
                 soundManager?.playSound(SoundManager.SoundType.GAME_START)
+                val gameStateDomain = message.gameState.toDomain()
                 _uiState.update {
                     it.copy(
-                        gameState = message.gameState,
+                        gameState = gameStateDomain,
                         lastMessage = "Game started!"
                     )
                 }
@@ -259,8 +268,9 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.GameStateUpdate -> {
+                val gameStateDomain = message.gameState.toDomain()
                 _uiState.update {
-                    it.copy(gameState = message.gameState)
+                    it.copy(gameState = gameStateDomain)
                 }
             }
 
@@ -354,13 +364,14 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.PlayerJoined -> {
-                println("GameViewModel: PlayerJoined event - ${message.player.name}")
+                val playerDomain = message.player.toDomain()
+                println("GameViewModel: PlayerJoined event - ${playerDomain.name}")
                 _uiState.update { state ->
-                    val updatedRoom = state.room?.addPlayer(message.player)
+                    val updatedRoom = state.room?.addPlayer(playerDomain)
                     println("GameViewModel: Updated room with ${updatedRoom?.players?.size} players")
                     state.copy(
                         room = updatedRoom ?: state.room,
-                        lastMessage = "${message.player.name} joined the room"
+                        lastMessage = "${playerDomain.name} joined the room"
                     )
                 }
             }
