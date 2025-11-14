@@ -36,6 +36,12 @@ fun GameScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val gameState = uiState.gameState
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Initialize sound manager
+    LaunchedEffect(Unit) {
+        viewModel.initSoundManager(context)
+    }
 
     // Don't connect again if already connected (shared ViewModel from CreateRoom/JoinRoom)
     LaunchedEffect(uiState.isConnected) {

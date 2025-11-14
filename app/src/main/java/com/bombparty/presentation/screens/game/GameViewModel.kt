@@ -32,7 +32,6 @@ import com.bombparty.network.dto.ServerMessage
 import com.bombparty.network.dto.WebSocketMessage
 import com.bombparty.utils.SoundManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -52,7 +51,6 @@ data class GameUiState(
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val webSocketClient: WebSocketClient,
     private val dictionaryRepository: DictionaryRepository
 ) : ViewModel() {
@@ -62,7 +60,13 @@ class GameViewModel @Inject constructor(
 
     private var connectionJob: Job? = null
     private var timerJob: Job? = null
-    private val soundManager = SoundManager(context)
+    private var soundManager: SoundManager? = null
+
+    fun initSoundManager(context: Context) {
+        if (soundManager == null) {
+            soundManager = SoundManager(context)
+        }
+    }
 
     fun connectToServer(serverUrl: String) {
         // Don't reconnect if already connected or connecting
@@ -212,7 +216,7 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.GameStarted -> {
-                soundManager.playSound(SoundManager.SoundType.GAME_START)
+                soundManager?.playSound(SoundManager.SoundType.GAME_START)
                 _uiState.update {
                     it.copy(
                         gameState = message.gameState,
@@ -229,7 +233,7 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.WordAccepted -> {
-                soundManager.playSound(SoundManager.SoundType.WORD_CORRECT)
+                soundManager?.playSound(SoundManager.SoundType.WORD_CORRECT)
                 _uiState.update {
                     it.copy(
                         lastMessage = if (message.gainedLife) {
@@ -242,7 +246,7 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.WordRejected -> {
-                soundManager.playSound(SoundManager.SoundType.WORD_INCORRECT)
+                soundManager?.playSound(SoundManager.SoundType.WORD_INCORRECT)
                 _uiState.update {
                     it.copy(
                         lastMessage = "Word rejected: ${message.reason}"
@@ -251,8 +255,8 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.BombExplodedEvent -> {
-                soundManager.stopSound(SoundManager.SoundType.BOMB_TICK)
-                soundManager.playSound(SoundManager.SoundType.BOMB_EXPLODE)
+                soundManager?.stopSound(SoundManager.SoundType.BOMB_TICK)
+                soundManager?.playSound(SoundManager.SoundType.BOMB_EXPLODE)
                 _uiState.update {
                     it.copy(
                         lastMessage = "${message.playerName} lost a life! ${message.livesRemaining} remaining"
@@ -270,8 +274,8 @@ class GameViewModel @Inject constructor(
 
             is ServerMessage.GameFinished -> {
                 timerJob?.cancel()
-                soundManager.stopSound(SoundManager.SoundType.BOMB_TICK)
-                soundManager.playSound(SoundManager.SoundType.VICTORY)
+                soundManager?.stopSound(SoundManager.SoundType.BOMB_TICK)
+                soundManager?.playSound(SoundManager.SoundType.VICTORY)
                 _uiState.update {
                     it.copy(
                         lastMessage = "${message.winnerName} wins!"
@@ -280,7 +284,7 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.NewSyllable -> {
-                soundManager.playSoundLoop(SoundManager.SoundType.BOMB_TICK, 0.5f)
+                soundManager?.playSoundLoop(SoundManager.SoundType.BOMB_TICK, 0.5f)
                 _uiState.update { state ->
                     val updatedBombState = state.gameState?.bombState?.copy(
                         currentSyllable = message.syllable,
@@ -373,7 +377,7 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             timerJob?.cancel()
             connectionJob?.cancel()
-            soundManager.stopAllSounds()
+            soundManager?.stopAllSounds()
             webSocketClient.disconnect()
             _uiState.update { GameUiState() }
         }
@@ -382,6 +386,6 @@ class GameViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
-        soundManager.release()
+        soundManager?.release()
     }
 }

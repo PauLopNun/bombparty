@@ -63,6 +63,11 @@ fun NavGraph(
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
 
+            // Initialize sound manager
+            LaunchedEffect(Unit) {
+                viewModel.initSoundManager(context)
+            }
+
             // Auto-navigate to lobby when room is created
             LaunchedEffect(uiState.room?.id) {
                 uiState.room?.id?.let { roomId ->
@@ -94,6 +99,11 @@ fun NavGraph(
             val viewModel: GameViewModel = hiltViewModel(backStackEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
+
+            // Initialize sound manager
+            LaunchedEffect(Unit) {
+                viewModel.initSoundManager(context)
+            }
 
             // Auto-navigate to lobby when room is joined
             LaunchedEffect(uiState.room?.id) {
