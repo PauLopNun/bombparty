@@ -19,10 +19,11 @@ fun main() {
     val host = System.getenv("HOST") ?: "0.0.0.0"
 
     println("=".repeat(50))
-    println("Starting BombParty Server")
+    println("Starting BombParty Server v1.0.21")
     println("Host: $host")
     println("Port: $port")
     println("WebSocket endpoint: ws://$host:$port/game")
+    println("Features: Avatar support, Sound effects integration")
     println("Environment variables:")
     println("  PORT: ${System.getenv("PORT")}")
     println("  HOST: ${System.getenv("HOST")}")
