@@ -147,7 +147,7 @@ class GameManager {
             lives = initialLives,
             isAlive = true,
             isCurrentTurn = false,
-            avatar = player.avatar
+            avatar = avatar
         )
 
         val roomDto = GameRoomDto(
