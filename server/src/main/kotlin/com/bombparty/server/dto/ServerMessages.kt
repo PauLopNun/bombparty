@@ -1,5 +1,6 @@
 package com.bombparty.server.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,17 +40,22 @@ data class GameRoomDto(
 @Serializable
 sealed class ServerMessage {
     @Serializable
+    @SerialName("RoomCreated")
     data class RoomCreated(val room: GameRoomDto, val playerId: String) : ServerMessage()
 
     @Serializable
+    @SerialName("RoomJoined")
     data class RoomJoined(val room: GameRoomDto, val playerId: String) : ServerMessage()
 
     @Serializable
+    @SerialName("PlayerJoined")
     data class PlayerJoined(val player: PlayerDto) : ServerMessage()
 
     @Serializable
+    @SerialName("PlayerLeft")
     data class PlayerLeft(val playerId: String) : ServerMessage()
 
     @Serializable
+    @SerialName("Error")
     data class Error(val message: String) : ServerMessage()
 }
