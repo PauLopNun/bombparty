@@ -32,12 +32,13 @@ import com.bombparty.domain.model.SyllableDifficulty
 fun CreateRoomScreen(
     onNavigateBack: () -> Unit,
     onRoomCreated: (roomId: String, playerName: String, avatar: String, config: GameConfig) -> Unit,
+    savedPlayerName: String = "",
+    savedAvatar: String = "😀",
     isLoading: Boolean = false,
     isConnected: Boolean = false,
     error: String? = null
 ) {
-    var playerName by remember { mutableStateOf("") }
-    var selectedAvatar by remember { mutableStateOf(AvatarOptions.HAPPY) }
+    var playerName by remember { mutableStateOf(savedPlayerName) }
     var language by remember { mutableStateOf(GameLanguage.SPANISH) }
     var difficulty by remember { mutableStateOf(SyllableDifficulty.BEGINNER) }
     var initialLives by remember { mutableStateOf(2) }
@@ -111,57 +112,44 @@ fun CreateRoomScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Player Name
-            OutlinedTextField(
-                value = playerName,
-                onValueChange = { playerName = it },
-                label = { Text("Tu nombre") },
+            // Show current profile
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !isLoading
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Avatar Selection
-            Text(
-                text = "Elige tu avatar",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
             ) {
-                items(AvatarOptions.ALL) { avatar ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Avatar preview
                     Box(
                         modifier = Modifier
-                            .aspectRatio(1f)
+                            .size(60.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (selectedAvatar == avatar)
-                                    MaterialTheme.colorScheme.primaryContainer
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            .border(
-                                width = if (selectedAvatar == avatar) 3.dp else 0.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = CircleShape
-                            )
-                            .clickable(enabled = !isLoading) { selectedAvatar = avatar },
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = avatar.emoji,
-                            style = MaterialTheme.typography.displaySmall
+                            text = savedAvatar,
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (playerName.isNotBlank()) playerName else "Sin nombre",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Edita tu perfil desde el menú principal",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -333,13 +321,13 @@ fun CreateRoomScreen(
                             minTurnDuration = turnDuration,
                             maxPlayers = maxPlayers
                         )
-                        onRoomCreated("", playerName, selectedAvatar.emoji, config)
+                        onRoomCreated("", playerName.ifBlank { "Jugador" }, savedAvatar, config)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = playerName.isNotBlank() && isConnected && !isLoading
+                enabled = isConnected && !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

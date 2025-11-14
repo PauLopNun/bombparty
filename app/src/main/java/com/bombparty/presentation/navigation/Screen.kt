@@ -2,6 +2,7 @@ package com.bombparty.presentation.navigation
 
 sealed class Screen(val route: String) {
     object Menu : Screen("menu")
+    object Profile : Screen("profile")
     object CreateRoom : Screen("create_room")
     object JoinRoom : Screen("join_room")
     object Lobby : Screen("lobby/{roomId}") {

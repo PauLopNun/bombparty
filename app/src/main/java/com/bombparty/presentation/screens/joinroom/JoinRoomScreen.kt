@@ -24,11 +24,12 @@ import com.bombparty.domain.model.AvatarOptions
 @Composable
 fun JoinRoomScreen(
     onNavigateBack: () -> Unit,
-    onJoinRoom: (roomId: String, playerName: String, avatar: String) -> Unit
+    onJoinRoom: (roomId: String, playerName: String, avatar: String) -> Unit,
+    savedPlayerName: String = "",
+    savedAvatar: String = "😀"
 ) {
     var roomId by remember { mutableStateOf("") }
-    var playerName by remember { mutableStateOf("") }
-    var selectedAvatar by remember { mutableStateOf(AvatarOptions.HAPPY) }
+    var playerName by remember { mutableStateOf(savedPlayerName) }
     var isJoining by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -94,72 +95,63 @@ fun JoinRoomScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Avatar Selector
-            Text(
-                text = "Elige tu avatar",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Show current profile
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
             ) {
-                items(AvatarOptions.ALL) { avatar ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Avatar preview
                     Box(
                         modifier = Modifier
-                            .aspectRatio(1f)
+                            .size(60.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (selectedAvatar == avatar)
-                                    MaterialTheme.colorScheme.primaryContainer
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            .clickable { selectedAvatar = avatar },
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = avatar.emoji,
+                            text = savedAvatar,
                             style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (playerName.isNotBlank()) playerName else "Sin nombre",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Edita tu perfil desde el menú principal",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                         )
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Player Name Input
-            OutlinedTextField(
-                value = playerName,
-                onValueChange = { playerName = it },
-                label = { Text("Tu nombre") },
-                placeholder = { Text("Nombre de jugador") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !isJoining
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Join Button
             Button(
                 onClick = {
-                    if (roomId.isNotBlank() && playerName.isNotBlank()) {
+                    if (roomId.isNotBlank()) {
                         isJoining = true
-                        onJoinRoom(roomId.trim(), playerName.trim(), selectedAvatar.emoji)
+                        onJoinRoom(roomId.trim(), playerName.ifBlank { "Jugador" }, savedAvatar)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = roomId.isNotBlank() && playerName.isNotBlank() && !isJoining
+                enabled = roomId.isNotBlank() && !isJoining
             ) {
                 if (isJoining) {
                     CircularProgressIndicator(

@@ -32,7 +32,10 @@ import com.bombparty.presentation.screens.game.GameViewModel
 import com.bombparty.presentation.screens.joinroom.JoinRoomScreen
 import com.bombparty.presentation.screens.lobby.LobbyScreen
 import com.bombparty.presentation.screens.menu.MenuScreen
+import com.bombparty.presentation.screens.profile.ProfileScreen
 import com.bombparty.utils.Config
+import com.bombparty.utils.SessionManager
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun NavGraph(
@@ -51,8 +54,29 @@ fun NavGraph(
                 onJoinRoom = {
                     navController.navigate(Screen.JoinRoom.route)
                 },
+                onProfile = {
+                    navController.navigate(Screen.Profile.route)
+                },
                 onSettings = {
                     navController.navigate(Screen.Settings.route)
+                }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            val context = LocalContext.current
+            val sessionManager = remember { SessionManager.create(context) }
+
+            ProfileScreen(
+                currentName = sessionManager.playerName ?: "",
+                currentAvatar = sessionManager.playerAvatar ?: "😀",
+                onSave = { name, avatar ->
+                    sessionManager.playerName = name
+                    sessionManager.playerAvatar = avatar
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -62,6 +86,7 @@ fun NavGraph(
             val viewModel: GameViewModel = hiltViewModel(backStackEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
+            val sessionManager = remember { SessionManager.create(context) }
 
             // Initialize sound manager
             LaunchedEffect(Unit) {
@@ -88,6 +113,8 @@ fun NavGraph(
                 onRoomCreated = { _, playerName, avatar, config ->
                     viewModel.createRoom(config, playerName, avatar)
                 },
+                savedPlayerName = sessionManager.playerName ?: "",
+                savedAvatar = sessionManager.playerAvatar ?: "😀",
                 isLoading = uiState.isLoading,
                 isConnected = uiState.isConnected,
                 error = uiState.error
@@ -99,6 +126,7 @@ fun NavGraph(
             val viewModel: GameViewModel = hiltViewModel(backStackEntry)
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
+            val sessionManager = remember { SessionManager.create(context) }
 
             // Initialize sound manager
             LaunchedEffect(Unit) {
@@ -124,7 +152,9 @@ fun NavGraph(
                 },
                 onJoinRoom = { roomId, playerName, avatar ->
                     viewModel.joinRoom(roomId, playerName, avatar)
-                }
+                },
+                savedPlayerName = sessionManager.playerName ?: "",
+                savedAvatar = sessionManager.playerAvatar ?: "😀"
             )
         }
 

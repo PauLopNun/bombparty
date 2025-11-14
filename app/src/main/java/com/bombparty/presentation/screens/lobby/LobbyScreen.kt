@@ -221,18 +221,17 @@ private fun PlayerItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Player icon
+            // Player avatar
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                Text(
+                    text = player.avatar,
+                    style = MaterialTheme.typography.headlineMedium
                 )
             }
 

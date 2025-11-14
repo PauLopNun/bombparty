@@ -12,12 +12,19 @@ import javax.inject.Singleton
  */
 @Singleton
 class SessionManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext context: Context
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "bombparty_session",
         Context.MODE_PRIVATE
     )
+
+    companion object {
+        // Factory method for manual creation when needed outside of Hilt scope
+        fun create(context: Context): SessionManager {
+            return SessionManager(context.applicationContext)
+        }
+    }
 
     var roomId: String?
         get() = prefs.getString(KEY_ROOM_ID, null)
