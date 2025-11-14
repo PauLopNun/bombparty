@@ -136,11 +136,16 @@ fun NavGraph(
 
             // Get ViewModel from the previous entry (CreateRoom or JoinRoom)
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
-                    navController.currentBackStack.value.any { entry ->
-                        entry.destination.route == Screen.CreateRoom.route
-                    }
-                } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+                try {
+                    navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
+                        navController.currentBackStack.value.any { entry ->
+                            entry.destination.route == Screen.CreateRoom.route
+                        }
+                    } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+                } catch (e: Exception) {
+                    println("NavGraph: Error getting parent entry for Lobby, using current: ${e.message}")
+                    backStackEntry
+                }
             }
             val viewModel: GameViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -185,19 +190,33 @@ fun NavGraph(
 
             // Get ViewModel from the previous entry (CreateRoom or JoinRoom via Lobby)
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
-                    navController.currentBackStack.value.any { entry ->
-                        entry.destination.route == Screen.CreateRoom.route
-                    }
-                } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+                try {
+                    navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
+                        navController.currentBackStack.value.any { entry ->
+                            entry.destination.route == Screen.CreateRoom.route
+                        }
+                    } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
+                } catch (e: Exception) {
+                    // Si no encontramos la entrada, usar la entrada actual como fallback
+                    println("NavGraph: Error getting parent entry, using current: ${e.message}")
+                    backStackEntry
+                }
             }
             val viewModel: GameViewModel = hiltViewModel(parentEntry)
+            val context = LocalContext.current
+
+            // Initialize sound manager if not already done
+            LaunchedEffect(Unit) {
+                viewModel.initSoundManager(context)
+            }
 
             GameScreen(
                 viewModel = viewModel,
                 roomId = roomId,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    // Salir del juego completamente
+                    viewModel.leaveRoom(roomId, viewModel.uiState.value.currentPlayerId ?: "")
+                    navController.popBackStack(Screen.Menu.route, inclusive = false)
                 }
             )
         }

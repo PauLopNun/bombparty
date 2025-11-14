@@ -28,6 +28,7 @@ data class ServerGameRoom(
     var bombTimerJob: Job? = null,
     var bombTimeRemaining: Float = 0f,
     val usedWords: MutableSet<String> = mutableSetOf(),
+    var isStarted: Boolean = false,
     var config: Map<String, Any> = mapOf(
         "language" to "SPANISH",
         "syllableDifficulty" to "BEGINNER",
@@ -250,6 +251,8 @@ class GameManager {
     }
 
     private suspend fun startNewRound(room: ServerGameRoom) {
+        room.isStarted = true  // Mark game as started
+
         val syllables = listOf("ar", "er", "or", "an", "en", "on", "al", "el", "as", "es", "os",
             "ra", "re", "ro", "na", "ne", "no", "la", "le", "lo", "sa", "se", "so",
             "ta", "te", "to", "ca", "co", "ma", "me", "mo", "pa", "pe", "po")
@@ -430,7 +433,7 @@ class GameManager {
         room.currentPlayerIndex = aliveIndices[nextAliveIndex]
     }
 
-    suspend fun handleDisconnect(session: WebSocketSession) {
+    suspend fun handleDisconnect(session: WebSocketSession) = mutex.withLock {
         val playerId = playerToRoom.entries.find { entry ->
             val room = rooms[entry.value]
             room?.players?.any { it.session == session } == true
@@ -439,13 +442,75 @@ class GameManager {
         val roomId = playerToRoom.remove(playerId) ?: return
         val room = rooms[roomId] ?: return
 
+        println("🔴 Player disconnected: $playerId from room $roomId")
+
+        val wasCurrentPlayer = room.players.getOrNull(room.currentPlayerIndex)?.id == playerId
+        val isGameStarted = room.isStarted
+
         room.players.removeIf { it.id == playerId }
 
         if (room.players.isEmpty()) {
+            println("🗑️ Room $roomId is now empty, removing it")
+            room.bombTimerJob?.cancel()
             rooms.remove(roomId)
-        } else {
-            room.players.forEach { player ->
-                sendMessage(player.session, ServerMessage.PlayerLeft(playerId))
+            return
+        }
+
+        // Notify remaining players
+        room.players.forEach { player ->
+            sendMessage(player.session, ServerMessage.PlayerLeft(playerId))
+        }
+
+        // If game is in progress, handle game state
+        if (isGameStarted) {
+            println("⚠️ Game was in progress, adjusting...")
+
+            // Adjust current player index if necessary
+            if (wasCurrentPlayer && room.players.isNotEmpty()) {
+                println("🔄 Disconnected player was current, moving to next player")
+                // Cancel current bomb timer
+                room.bombTimerJob?.cancel()
+
+                // Move to next player (index stays same since we removed a player)
+                if (room.currentPlayerIndex >= room.players.size) {
+                    room.currentPlayerIndex = 0
+                }
+
+                // Start new turn
+                val alivePlayers = room.players.filter { it.isAlive }
+                if (alivePlayers.size < 2) {
+                    // End game if only 1 player left
+                    val winner = alivePlayers.firstOrNull()
+                    if (winner != null) {
+                        println("🏆 Only one player left, ending game. Winner: ${winner.name}")
+                        room.players.forEach { player ->
+                            sendMessage(player.session, ServerMessage.GameFinished(
+                                winnerId = winner.id,
+                                winnerName = winner.name
+                            ))
+                        }
+                    }
+                    rooms.remove(roomId)
+                } else {
+                    // Continue game with new syllable
+                    val newSyllable = syllableGenerator.generateSyllable(SyllableDifficulty.BEGINNER)
+                    room.currentSyllable = newSyllable
+                    val bombTime = (room.config["minTurnDuration"] as? Int ?: 5).toFloat()
+                    room.bombTimeRemaining = bombTime
+
+                    room.players.forEach { player ->
+                        sendMessage(player.session, ServerMessage.NewSyllable(newSyllable, bombTime))
+                    }
+
+                    // Start new bomb timer
+                    startBombTimer(room, roomId)
+
+                    // Send updated game state
+                    val gameStateDto = createGameStateDto(room)
+                    room.players.forEach { player ->
+                        sendMessage(player.session, ServerMessage.GameStateUpdate(gameStateDto))
+                    }
+                }
             }
         }
     }
