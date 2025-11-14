@@ -11,7 +11,8 @@ data class PlayerDto(
     val isAlive: Boolean = true,
     val isCurrentTurn: Boolean = false,
     val usedWords: Set<String> = emptySet(),
-    val bonusLettersUsed: Map<String, Int> = emptyMap()
+    val bonusLettersUsed: Map<String, Int> = emptyMap(),
+    val avatar: String = "😀"
 )
 
 @Serializable

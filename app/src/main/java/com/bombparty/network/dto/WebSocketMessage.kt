@@ -8,11 +8,11 @@ import kotlinx.serialization.Serializable
 sealed class WebSocketMessage {
     @Serializable
     @SerialName("create_room")
-    data class CreateRoom(val config: GameConfig, val playerName: String) : WebSocketMessage()
+    data class CreateRoom(val config: GameConfig, val playerName: String, val avatar: String = "😀") : WebSocketMessage()
 
     @Serializable
     @SerialName("join_room")
-    data class JoinRoom(val roomId: String, val playerName: String) : WebSocketMessage()
+    data class JoinRoom(val roomId: String, val playerName: String, val avatar: String = "😀") : WebSocketMessage()
 
     @Serializable
     @SerialName("leave_room")

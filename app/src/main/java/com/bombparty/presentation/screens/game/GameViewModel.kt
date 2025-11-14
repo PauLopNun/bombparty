@@ -102,13 +102,13 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun createRoom(config: GameConfig, playerName: String) {
+    fun createRoom(config: GameConfig, playerName: String, avatar: String = "😀") {
         viewModelScope.launch {
             try {
-                println("GameViewModel: Creating room with player name: $playerName")
+                println("GameViewModel: Creating room with player name: $playerName, avatar: $avatar")
                 _uiState.update { it.copy(isLoading = true, error = null) }
                 webSocketClient.sendMessage(
-                    WebSocketMessage.CreateRoom(config, playerName)
+                    WebSocketMessage.CreateRoom(config, playerName, avatar)
                 )
                 println("GameViewModel: Create room message sent")
             } catch (e: Exception) {
@@ -124,11 +124,11 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun joinRoom(roomId: String, playerName: String) {
+    fun joinRoom(roomId: String, playerName: String, avatar: String = "😀") {
         viewModelScope.launch {
             try {
                 webSocketClient.sendMessage(
-                    WebSocketMessage.JoinRoom(roomId, playerName)
+                    WebSocketMessage.JoinRoom(roomId, playerName, avatar)
                 )
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Error joining room: ${e.message}") }

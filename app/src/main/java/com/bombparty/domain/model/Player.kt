@@ -10,7 +10,8 @@ data class Player(
     val isAlive: Boolean = true,
     val isCurrentTurn: Boolean = false,
     val usedWords: Set<String> = emptySet(),
-    val bonusLettersUsed: Map<String, Int> = emptyMap()
+    val bonusLettersUsed: Map<String, Int> = emptyMap(),
+    val avatar: String = "😀"  // Emoji del avatar
 ) {
     fun loseLife(): Player = copy(
         lives = (lives - 1).coerceAtLeast(0),

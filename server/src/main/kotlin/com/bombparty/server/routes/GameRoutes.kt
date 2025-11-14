@@ -44,11 +44,12 @@ fun Application.configureRouting(gameManager: GameManager) {
                                 "create_room" -> {
                                     println("🏠🏠🏠 CREATING ROOM (conn #$connectionId) 🏠🏠🏠")
                                     val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
-                                    println("👤 Player: $playerName")
+                                    val avatar = json["avatar"]?.jsonPrimitive?.content ?: "😀"
+                                    println("👤 Player: $playerName, Avatar: $avatar")
                                     val config = json["config"]?.jsonObject
                                     println("⚙️ Config: $config")
 
-                                    currentRoomId = gameManager.createRoom(this, playerName, config)
+                                    currentRoomId = gameManager.createRoom(this, playerName, avatar, config)
                                     currentPlayerId = currentRoomId
                                     println("✅✅✅ ROOM CREATED: $currentRoomId ✅✅✅")
                                 }
@@ -56,7 +57,8 @@ fun Application.configureRouting(gameManager: GameManager) {
                             "join_room" -> {
                                 val roomId = json["roomId"]?.jsonPrimitive?.content ?: continue
                                 val playerName = json["playerName"]?.jsonPrimitive?.content ?: "Player"
-                                currentPlayerId = gameManager.joinRoom(roomId, playerName, this)
+                                val avatar = json["avatar"]?.jsonPrimitive?.content ?: "😀"
+                                currentPlayerId = gameManager.joinRoom(roomId, playerName, avatar, this)
                                 currentRoomId = roomId
                             }
 

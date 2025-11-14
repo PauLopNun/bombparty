@@ -15,7 +15,8 @@ data class ServerPlayer(
     val name: String,
     val session: WebSocketSession,
     var lives: Int,
-    var isAlive: Boolean = true
+    var isAlive: Boolean = true,
+    val avatar: String = "😀"
 )
 
 data class ServerGameRoom(
@@ -52,6 +53,7 @@ class GameManager {
     suspend fun createRoom(
         hostSession: WebSocketSession,
         playerName: String,
+        avatar: String = "😀",
         configJson: kotlinx.serialization.json.JsonObject? = null
     ): String = mutex.withLock {
         val roomId = generateRoomCode()
@@ -114,7 +116,8 @@ class GameManager {
             id = playerId,
             name = playerName,
             session = hostSession,
-            lives = initialLives
+            lives = initialLives,
+            avatar = avatar
         )
 
         val room = ServerGameRoom(
@@ -143,7 +146,8 @@ class GameManager {
             name = playerName,
             lives = initialLives,
             isAlive = true,
-            isCurrentTurn = false
+            isCurrentTurn = false,
+            avatar = player.avatar
         )
 
         val roomDto = GameRoomDto(
@@ -163,6 +167,7 @@ class GameManager {
     suspend fun joinRoom(
         roomId: String,
         playerName: String,
+        avatar: String = "😀",
         session: WebSocketSession
     ): String? = mutex.withLock {
         val room = rooms[roomId] ?: return null
@@ -178,7 +183,8 @@ class GameManager {
             id = playerId,
             name = playerName,
             session = session,
-            lives = initialLives
+            lives = initialLives,
+            avatar = avatar
         )
 
         room.players.add(player)
@@ -188,7 +194,8 @@ class GameManager {
         val newPlayerDto = PlayerDto(
             id = playerId,
             name = playerName,
-            lives = initialLives
+            lives = initialLives,
+            avatar = player.avatar
         )
         room.players.filter { it.id != playerId }.forEach { otherPlayer ->
             sendMessage(otherPlayer.session, ServerMessage.PlayerJoined(newPlayerDto))
@@ -211,7 +218,8 @@ class GameManager {
                 name = p.name,
                 lives = p.lives,
                 isAlive = p.isAlive,
-                isCurrentTurn = false
+                isCurrentTurn = false,
+                avatar = p.avatar
             )
         }
 
@@ -273,7 +281,8 @@ class GameManager {
                 name = player.name,
                 lives = player.lives,
                 isAlive = player.isAlive,
-                isCurrentTurn = index == room.currentPlayerIndex
+                isCurrentTurn = index == room.currentPlayerIndex,
+                avatar = player.avatar
             )
         }
 

@@ -194,7 +194,7 @@ fun PlayerCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            // Player initial
+            // Player avatar
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -203,10 +203,8 @@ fun PlayerCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = player.name.firstOrNull()?.uppercase() ?: "?",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    text = player.avatar,
+                    style = MaterialTheme.typography.headlineMedium
                 )
             }
 
@@ -473,10 +471,8 @@ fun VictoryScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = player.name.firstOrNull()?.uppercase() ?: "?",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
+                                    text = player.avatar,
+                                    style = MaterialTheme.typography.titleLarge
                                 )
                             }
 

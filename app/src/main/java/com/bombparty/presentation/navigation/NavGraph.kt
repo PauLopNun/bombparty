@@ -80,8 +80,8 @@ fun NavGraph(
                     viewModel.disconnect()
                     navController.popBackStack()
                 },
-                onRoomCreated = { _, playerName, config ->
-                    viewModel.createRoom(config, playerName)
+                onRoomCreated = { _, playerName, avatar, config ->
+                    viewModel.createRoom(config, playerName, avatar)
                 },
                 isLoading = uiState.isLoading,
                 isConnected = uiState.isConnected,
