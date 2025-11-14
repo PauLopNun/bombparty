@@ -71,11 +71,39 @@ class WebSocketClient @Inject constructor() {
                     if (frame is Frame.Text) {
                         val text = frame.readText()
                         try {
-                            println("WebSocket: Received: $text")
+                            println("=== WebSocket RAW MESSAGE ===")
+                            println(text)
+                            println("=== ATTEMPTING TO PARSE ===")
                             val message = json.decodeFromString<ServerMessage>(text)
+                            println("=== SUCCESSFULLY PARSED: ${message::class.simpleName} ===")
+
+                            // Log specific message details
+                            when (message) {
+                                is ServerMessage.RoomCreated -> {
+                                    println("RoomCreated: roomId=${message.room.id}, playerId=${message.playerId}, players=${message.room.players.size}")
+                                    message.room.players.forEach { player ->
+                                        println("  Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}")
+                                    }
+                                }
+                                is ServerMessage.RoomJoined -> {
+                                    println("RoomJoined: roomId=${message.room.id}, playerId=${message.playerId}, players=${message.room.players.size}")
+                                    message.room.players.forEach { player ->
+                                        println("  Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}")
+                                    }
+                                }
+                                is ServerMessage.PlayerJoined -> {
+                                    println("PlayerJoined: id=${message.player.id}, name=${message.player.name}, avatar=${message.player.avatar}")
+                                }
+                                else -> {
+                                    println("Other message type: ${message::class.simpleName}")
+                                }
+                            }
+
                             emit(message)
                         } catch (e: Exception) {
-                            println("Error parsing message: ${e.message}")
+                            println("=== ERROR PARSING MESSAGE ===")
+                            println("Error: ${e.message}")
+                            println("Raw message: $text")
                             e.printStackTrace()
                         }
                     }

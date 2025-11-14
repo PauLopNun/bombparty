@@ -229,19 +229,31 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.RoomJoined -> {
-                println("GameViewModel: Joined room ${message.room.id}, playerId: ${message.playerId}")
-                println("GameViewModel: Room has ${message.room.players.size} players: ${message.room.players.map { it.name }}")
-                println("GameViewModel: Max players: ${message.room.config.maxPlayers}")
+                println("=== GameViewModel: RoomJoined Message Received ===")
+                println("Room ID: ${message.room.id}")
+                println("Player ID: ${message.playerId}")
+                println("DTO Room has ${message.room.players.size} players:")
+                message.room.players.forEach { player ->
+                    println("  - DTO Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}, lives=${player.lives}")
+                }
+                println("Max players: ${message.room.config.maxPlayers}")
 
                 // Convert DTO to domain model
+                println("=== Converting DTO to Domain Model ===")
                 val roomDomain = message.room.toDomain()
-                println("GameViewModel: Converted domain room has ${roomDomain.players.size} players")
+                println("Domain room has ${roomDomain.players.size} players:")
+                roomDomain.players.forEach { player ->
+                    println("  - Domain Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}, lives=${player.lives}")
+                }
 
                 // Guardar sesión
+                println("=== Saving Session ===")
                 sessionManager.roomId = roomDomain.id
                 sessionManager.playerId = message.playerId
                 sessionManager.isInGame = true
+                println("Saved: roomId=${sessionManager.roomId}, playerId=${sessionManager.playerId}")
 
+                println("=== Updating UI State ===")
                 _uiState.update {
                     it.copy(
                         room = roomDomain,
@@ -252,7 +264,16 @@ class GameViewModel @Inject constructor(
                     )
                 }
 
-                println("GameViewModel: UI State updated. Room players: ${_uiState.value.room?.players?.size}")
+                println("=== UI State After Update ===")
+                println("Room: ${_uiState.value.room?.id}")
+                println("Players: ${_uiState.value.room?.players?.size}")
+                _uiState.value.room?.players?.forEach { player ->
+                    println("  - Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}")
+                }
+                println("Current Player ID: ${_uiState.value.currentPlayerId}")
+                println("Is Connected: ${_uiState.value.isConnected}")
+                println("Is Loading: ${_uiState.value.isLoading}")
+                println("===========================================")
             }
 
             is ServerMessage.GameStarted -> {

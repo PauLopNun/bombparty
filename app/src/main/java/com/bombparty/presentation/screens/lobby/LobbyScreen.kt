@@ -31,6 +31,23 @@ fun LobbyScreen(
     onNavigateBack: () -> Unit,
     onCopyRoomId: () -> Unit
 ) {
+    // Log whenever room state changes
+    LaunchedEffect(room, currentPlayerId, isLoading) {
+        println("=== LobbyScreen State Update ===")
+        println("Room ID: $roomId")
+        println("Current Player ID: $currentPlayerId")
+        println("Is Loading: $isLoading")
+        println("Room: ${room?.id}")
+        println("Room Players: ${room?.players?.size}")
+        room?.players?.forEach { player ->
+            println("  - Player: id=${player.id}, name=${player.name}, avatar=${player.avatar}")
+        }
+        println("Room Host ID: ${room?.hostId}")
+        println("Room Config Max Players: ${room?.config?.maxPlayers}")
+        println("Error: $error")
+        println("================================")
+    }
+
     val isHost = room?.hostId == currentPlayerId
     val canStart = room?.canStart() == true
 
