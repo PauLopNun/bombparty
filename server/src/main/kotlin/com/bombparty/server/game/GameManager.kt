@@ -1,5 +1,6 @@
 package com.bombparty.server.game
 
+import com.bombparty.server.dictionary.DictionaryService
 import com.bombparty.server.dto.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -44,6 +45,7 @@ class GameManager {
     private val rooms = ConcurrentHashMap<String, ServerGameRoom>()
     private val playerToRoom = ConcurrentHashMap<String, String>()
     private val mutex = Mutex()
+    private val dictionary = DictionaryService()
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
@@ -279,6 +281,12 @@ class GameManager {
 
         // Start a new round
         startNewRound(room)
+
+        // Send updated game state to all players
+        val gameState = createGameStateDto(room)
+        room.players.forEach { player ->
+            sendMessage(player.session, ServerMessage.GameStateUpdate(gameState))
+        }
     }
 
     private suspend fun startNewRound(room: ServerGameRoom) {
@@ -422,39 +430,47 @@ class GameManager {
         val syllable = room.currentSyllable ?: return
         val normalizedWord = word.lowercase().trim()
 
-        // Basic validation
-        // 1. Check minimum length (must be longer than just the syllable)
+        // 1. Check if word is valid in Spanish dictionary
+        if (!dictionary.isValidWord(normalizedWord)) {
+            sendMessage(currentPlayer.session, ServerMessage.WordRejected(
+                word = word,
+                reason = "Palabra no válida en el diccionario español"
+            ))
+            return
+        }
+
+        // 2. Check minimum length (must be longer than just the syllable)
         if (normalizedWord.length < 3) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
-                reason = "Word too short (minimum 3 letters)"
+                reason = "Palabra muy corta (mínimo 3 letras)"
             ))
             return
         }
 
-        // 2. Check if word contains the syllable
+        // 3. Check if word contains the syllable
         if (!normalizedWord.contains(syllable.lowercase())) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
-                reason = "Word doesn't contain syllable '$syllable'"
+                reason = "La palabra no contiene la sílaba '$syllable'"
             ))
             return
         }
 
-        // 3. Check if word is just the syllable (not allowed)
+        // 4. Check if word is just the syllable (not allowed)
         if (normalizedWord == syllable.lowercase()) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
-                reason = "Cannot submit only the syllable"
+                reason = "No puedes enviar solo la sílaba"
             ))
             return
         }
 
-        // 4. Check if word was already used
+        // 5. Check if word was already used
         if (normalizedWord in room.usedWords) {
             sendMessage(currentPlayer.session, ServerMessage.WordRejected(
                 word = word,
-                reason = "Word already used"
+                reason = "Palabra ya usada"
             ))
             return
         }
