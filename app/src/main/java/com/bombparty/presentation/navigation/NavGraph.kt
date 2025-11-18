@@ -165,16 +165,35 @@ fun NavGraph(
             val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
 
             // Get ViewModel from the previous entry (CreateRoom or JoinRoom)
+            // Try to get from the backstack in order: CreateRoom first, then JoinRoom
             val parentEntry = remember(backStackEntry) {
-                try {
-                    navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
-                        navController.currentBackStack.value.any { entry ->
-                            entry.destination.route == Screen.CreateRoom.route
-                        }
-                    } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
-                } catch (e: Exception) {
-                    println("NavGraph: Error getting parent entry for Lobby, using current: ${e.message}")
-                    backStackEntry
+                val backStack = navController.currentBackStack.value
+                println("🔍 NavGraph Lobby: Looking for parent ViewModel in backstack")
+                println("🔍 Current backstack routes: ${backStack.map { it.destination.route }}")
+
+                // First try CreateRoom
+                val createRoomEntry = backStack.firstOrNull {
+                    it.destination.route == Screen.CreateRoom.route
+                }
+
+                if (createRoomEntry != null) {
+                    println("✅ Found CreateRoom entry for Lobby ViewModel")
+                    createRoomEntry
+                } else {
+                    // Then try JoinRoom
+                    val joinRoomEntry = backStack.firstOrNull {
+                        it.destination.route == Screen.JoinRoom.route
+                    }
+
+                    if (joinRoomEntry != null) {
+                        println("✅ Found JoinRoom entry for Lobby ViewModel")
+                        joinRoomEntry
+                    } else {
+                        // This should never happen, but log it clearly if it does
+                        println("❌ ERROR: Could not find CreateRoom or JoinRoom in backstack!")
+                        println("❌ This will cause issues - no WebSocket connection!")
+                        throw IllegalStateException("Cannot find parent entry for Lobby screen. Backstack: ${backStack.map { it.destination.route }}")
+                    }
                 }
             }
             val viewModel: GameViewModel = hiltViewModel(parentEntry)
@@ -183,6 +202,7 @@ fun NavGraph(
 
             // Auto-navigate to game when game starts
             LaunchedEffect(uiState.gameState) {
+                println("🎮 Lobby: gameState changed - ${if (uiState.gameState != null) "NAVIGATING TO GAME" else "still null"}")
                 if (uiState.gameState != null) {
                     navController.navigate(Screen.Game.createRoute(roomId))
                 }
@@ -220,16 +240,33 @@ fun NavGraph(
 
             // Get ViewModel from the previous entry (CreateRoom or JoinRoom via Lobby)
             val parentEntry = remember(backStackEntry) {
-                try {
-                    navController.getBackStackEntry(Screen.CreateRoom.route).takeIf {
-                        navController.currentBackStack.value.any { entry ->
-                            entry.destination.route == Screen.CreateRoom.route
-                        }
-                    } ?: navController.getBackStackEntry(Screen.JoinRoom.route)
-                } catch (e: Exception) {
-                    // Si no encontramos la entrada, usar la entrada actual como fallback
-                    println("NavGraph: Error getting parent entry, using current: ${e.message}")
-                    backStackEntry
+                val backStack = navController.currentBackStack.value
+                println("🔍 NavGraph Game: Looking for parent ViewModel in backstack")
+                println("🔍 Current backstack routes: ${backStack.map { it.destination.route }}")
+
+                // First try CreateRoom
+                val createRoomEntry = backStack.firstOrNull {
+                    it.destination.route == Screen.CreateRoom.route
+                }
+
+                if (createRoomEntry != null) {
+                    println("✅ Found CreateRoom entry for Game ViewModel")
+                    createRoomEntry
+                } else {
+                    // Then try JoinRoom
+                    val joinRoomEntry = backStack.firstOrNull {
+                        it.destination.route == Screen.JoinRoom.route
+                    }
+
+                    if (joinRoomEntry != null) {
+                        println("✅ Found JoinRoom entry for Game ViewModel")
+                        joinRoomEntry
+                    } else {
+                        // This should never happen, but log it clearly if it does
+                        println("❌ ERROR: Could not find CreateRoom or JoinRoom in backstack!")
+                        println("❌ This will cause issues - no WebSocket connection!")
+                        throw IllegalStateException("Cannot find parent entry for Game screen. Backstack: ${backStack.map { it.destination.route }}")
+                    }
                 }
             }
             val viewModel: GameViewModel = hiltViewModel(parentEntry)
