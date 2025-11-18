@@ -297,7 +297,10 @@ class GameManager {
             "ta", "te", "to", "ca", "co", "ma", "me", "mo", "pa", "pe", "po")
 
         room.currentSyllable = syllables.random()
-        room.bombTimeRemaining = (10..20).random().toFloat()
+
+        // Use configured minTurnDuration instead of random time
+        val minTurnDuration = room.config["minTurnDuration"] as? Int ?: 5
+        room.bombTimeRemaining = minTurnDuration.toFloat()
 
         // Send NewSyllable message
         room.players.forEach { player ->
@@ -566,7 +569,10 @@ class GameManager {
 
                     val newSyllable = syllables.random()
                     room.currentSyllable = newSyllable
-                    val bombTime = (10..20).random().toFloat()
+
+                    // Use configured minTurnDuration instead of random time
+                    val minTurnDuration = room.config["minTurnDuration"] as? Int ?: 5
+                    val bombTime = minTurnDuration.toFloat()
                     room.bombTimeRemaining = bombTime
 
                     room.players.forEach { player ->

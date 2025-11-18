@@ -244,15 +244,18 @@ fun BombComponent(
     timeRemaining: Float,
     maxTime: Float
 ) {
+    // Calculate time percentage (1.0 = 100%, 0.0 = 0%)
+    val timePercentage = if (maxTime > 0) timeRemaining / maxTime else 0f
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp),
         colors = CardDefaults.cardColors(
             containerColor = when {
-                timeRemaining < 3f -> BombRed
-                timeRemaining < 7f -> Color(0xFFFF9800)
-                else -> MaterialTheme.colorScheme.primaryContainer
+                timePercentage > 0.66f -> SuccessGreen  // Verde: más del 66% del tiempo
+                timePercentage > 0.33f -> BombYellow    // Amarillo: entre 33% y 66%
+                else -> BombRed                         // Rojo: menos del 33%
             }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)

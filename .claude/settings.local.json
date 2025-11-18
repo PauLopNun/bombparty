@@ -40,7 +40,10 @@
       "Bash(node test-render-ws.js:*)",
       "Bash(node test-join-room.js:*)",
       "Bash(../gradlew assembleDebug)",
-      "Bash(node test-join-specific-room.js:*)"
+      "Bash(node test-join-specific-room.js:*)",
+      "Bash(gh run list:*)",
+      "WebSearch",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
