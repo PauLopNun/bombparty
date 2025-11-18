@@ -306,6 +306,9 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.WordAccepted -> {
+                // Stop timer when word is accepted, server will send new syllable
+                timerJob?.cancel()
+                soundManager?.stopSound(SoundManager.SoundType.BOMB_TICK)
                 soundManager?.playSound(SoundManager.SoundType.WORD_CORRECT)
                 _uiState.update {
                     it.copy(
@@ -357,6 +360,9 @@ class GameViewModel @Inject constructor(
             }
 
             is ServerMessage.NewSyllable -> {
+                // Cancel timer FIRST to prevent any visual glitches
+                timerJob?.cancel()
+
                 soundManager?.playSoundLoop(SoundManager.SoundType.BOMB_TICK, 0.5f)
                 _uiState.update { state ->
                     val updatedBombState = state.gameState?.bombState?.copy(
@@ -374,6 +380,7 @@ class GameViewModel @Inject constructor(
                         gameState = state.gameState?.copy(bombState = updatedBombState)
                     )
                 }
+                // Start timer after state is updated
                 startBombTimer()
             }
 
