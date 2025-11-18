@@ -171,6 +171,16 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    fun restartGame(roomId: String) {
+        viewModelScope.launch {
+            try {
+                webSocketClient.sendMessage(WebSocketMessage.RestartGame(roomId))
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Error restarting game: ${e.message}") }
+            }
+        }
+    }
+
     fun submitWord(roomId: String, playerId: String) {
         val word = _uiState.value.currentWord.trim()
         if (word.isEmpty()) return

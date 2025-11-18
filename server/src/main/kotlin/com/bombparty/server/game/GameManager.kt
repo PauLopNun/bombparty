@@ -254,6 +254,33 @@ class GameManager {
         startNewRound(room)
     }
 
+    suspend fun restartGame(roomId: String) {
+        val room = rooms[roomId] ?: return
+
+        println("🔄 Restarting game in room $roomId")
+
+        // Cancel current bomb timer if any
+        room.bombTimerJob?.cancel()
+
+        // Reset game state
+        val initialLives = room.config["initialLives"] as? Int ?: 2
+        room.players.forEach { player ->
+            player.lives = initialLives
+            player.isAlive = true
+        }
+
+        // Clear used words
+        room.usedWords.clear()
+
+        // Reset player index to 0
+        room.currentPlayerIndex = 0
+
+        println("✅ Game state reset. Starting new round...")
+
+        // Start a new round
+        startNewRound(room)
+    }
+
     private suspend fun startNewRound(room: ServerGameRoom) {
         room.isStarted = true  // Mark game as started
 

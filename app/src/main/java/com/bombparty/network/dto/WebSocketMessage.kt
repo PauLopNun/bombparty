@@ -43,6 +43,10 @@ sealed class WebSocketMessage {
         val roomId: String,
         val config: GameConfig
     ) : WebSocketMessage()
+
+    @Serializable
+    @SerialName("restart_game")
+    data class RestartGame(val roomId: String) : WebSocketMessage()
 }
 
 @Serializable

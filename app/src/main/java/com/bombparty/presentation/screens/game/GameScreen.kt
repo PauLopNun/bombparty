@@ -90,7 +90,8 @@ fun GameScreen(
             // Victory screen
             VictoryScreen(
                 gameState = gameState,
-                onPlayAgain = onNavigateBack,
+                onPlayAgain = { viewModel.restartGame(roomId) },
+                onBackToMenu = onNavigateBack,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
@@ -131,15 +132,16 @@ fun GameScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Word input
+                val isMyTurn = gameState.currentPlayer?.id == uiState.currentPlayerId
                 WordInput(
                     word = uiState.currentWord,
                     onWordChange = viewModel::updateWord,
                     onSubmit = {
-                        gameState.currentPlayer?.let { player ->
-                            viewModel.submitWord(roomId, player.id)
+                        uiState.currentPlayerId?.let { playerId ->
+                            viewModel.submitWord(roomId, playerId)
                         }
                     },
-                    enabled = gameState.currentPlayer?.isCurrentTurn == true
+                    enabled = isMyTurn
                 )
 
                 // Message display
@@ -394,6 +396,7 @@ fun WordInput(
 fun VictoryScreen(
     gameState: GameState,
     onPlayAgain: () -> Unit,
+    onBackToMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val winner = gameState.players.find { it.id == gameState.winnerId }
@@ -515,6 +518,22 @@ fun VictoryScreen(
         ) {
             Text(
                 text = "Jugar de Nuevo",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Back to Menu button
+        OutlinedButton(
+            onClick = onBackToMenu,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            Text(
+                text = "Volver al Menú",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )

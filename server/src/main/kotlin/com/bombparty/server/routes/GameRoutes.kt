@@ -74,6 +74,12 @@ fun Application.configureRouting(gameManager: GameManager) {
                                 gameManager.submitWord(roomId, playerId, word)
                             }
 
+                            "restart_game" -> {
+                                val roomId = json["roomId"]?.jsonPrimitive?.content ?: continue
+                                println("🔄🔄🔄 RESTARTING GAME in room $roomId 🔄🔄🔄")
+                                gameManager.restartGame(roomId)
+                            }
+
                                 else -> {
                                     println("❓ Unknown type: '$type'")
                                 }

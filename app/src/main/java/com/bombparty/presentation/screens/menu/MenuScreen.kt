@@ -59,10 +59,18 @@ fun MenuScreen(
         ) {
             // App Title
             Text(
-                text = "💣 BOMB PARTY 💣",
+                text = "BOMB PARTY",
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Bomb emojis below title
+            Text(
+                text = "💣 💣 💣",
+                style = MaterialTheme.typography.displaySmall
             )
 
             Spacer(modifier = Modifier.height(48.dp))
